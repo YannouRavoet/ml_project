@@ -26,4 +26,4 @@ RUN pip3 install cmake
 RUN ./open_spiel/scripts/build_and_run_tests.sh
 
 # Set WORKDIR as the output of the build
-WORKDIR /ml_project/build_python_3
+WORKDIR /ml_project
