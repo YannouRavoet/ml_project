@@ -1,6 +1,11 @@
 #source: https://github.com/theduelinghouse/open_spiel-docker
+#Option 1: NVIDIA GPU DEVICE with nvidia docker installed
 #Start from tensorflow with gpu support
-FROM tensorflow/tensorflow:latest-gpu-py3
+#FROM tensorflow/tensorflow:latest-gpu-py3
+
+#Option 2: NO NVIDIA GPU DEVICE
+#Start from tensorflow without gpu support
+FROM tensorflow/tensorflow:latest-py3
 
 #install sudo and git
 RUN apt-get update && \
@@ -22,7 +27,7 @@ RUN pip3 install -r requirements.txt
 # Install CMake with verion higher than 3.12
 RUN pip3 install cmake
 
-# Copy the directory with OpenSpiel source code
+# Run test: all should pass
 RUN ./open_spiel/scripts/build_and_run_tests.sh
 
 # Set WORKDIR as the output of the build
