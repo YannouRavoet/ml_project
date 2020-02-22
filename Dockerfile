@@ -22,8 +22,6 @@ WORKDIR /ml_project/open_spiel
 # Turn off apt-get interactions during installation
 RUN sed -i -e 's/apt-get install/apt-get install -y/g' ./install.sh
 RUN ./install.sh
-RUN virtualenv -p python3 venv
-RUN /bin/bash -c "source venv/bin/activate"
 
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 # Install pip deps as your user. Do not use the system's pip.
