@@ -1,4 +1,4 @@
-# ml_project
+#Machine Learning: Project
 A project focussed on the application of Game Theory, Reinforcement Learning and Deep Learning in a multi-agent setting using the Google DeepMind OpenSpiel library. This project was made in the context of the 'Machine Learning: Project' (H0T25A) course at the KU Leuven.
 
 
