@@ -1,10 +1,4 @@
 #source: https://github.com/theduelinghouse/open_spiel-docker
-#Option 1: NVIDIA GPU DEVICE with nvidia docker installed
-#Start from tensorflow with gpu support
-#FROM tensorflow/tensorflow:latest-gpu-py3
-#Option 2: NO NVIDIA GPU DEVICE
-#Start from tensorflow without gpu support
-#FROM tensorflow/tensorflow:latest-py3
 FROM python:3.6-slim-buster
 
 #install sudo and git
@@ -23,14 +17,16 @@ WORKDIR /ml_project/open_spiel
 RUN sed -i -e 's/apt-get install/apt-get install -y/g' ./install.sh
 RUN ./install.sh
 
-RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 # Install pip deps as your user. Do not use the system's pip.
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 RUN python3 get-pip.py --user
 RUN pip3 install --upgrade pip --user
 RUN pip3 install --upgrade setuptools testresources --user
 
+#install OpenSpiel and run tests
 RUN python3 -m pip install .
 RUN pip install nox
 RUN nox -s tests
+
 # Set WORKDIR as the output of the build
 WORKDIR /ml_project
