@@ -3,10 +3,10 @@
     deadline = 20 March, 2020 --- report ≤ 4 pages
 * **Literature review**
     * Matrix Games
-        * 2-player's prisonner's dilemma
-        * matching pennis games
-        * battle of the sexes
-        * biased rock-paper-scissors
+        * [2-player's prisonner's dilemma](https://en.wikipedia.org/wiki/Prisoner's_dilemma)=social dilemma
+        * [matching pennis games](https://en.wikipedia.org/wiki/Matching_pennies) = zero-sum game
+        * [battle of the sexes](https://en.wikipedia.org/wiki/Battle_of_the_Sexes) = coordination game
+        * [biased rock-paper-scissors](https://en.wikipedia.org/wiki/Rock_paper_scissors) = zero-sum game
     * Q-learning
     * Learning Automata
     * Nash equilibria, equations

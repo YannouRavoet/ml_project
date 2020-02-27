@@ -16,17 +16,15 @@ WORKDIR /ml_project/open_spiel
 # Turn off apt-get interactions during installation
 RUN sed -i -e 's/apt-get install/apt-get install -y/g' ./install.sh
 RUN ./install.sh
-
-# Install pip deps as your user. Do not use the system's pip.
-RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-RUN python3 get-pip.py --user
-RUN pip3 install --upgrade pip --user
-RUN pip3 install --upgrade setuptools testresources --user
+RUN pip3 install --upgrade pip
+RUN pip3 install --upgrade setuptools testresources
 
 #install OpenSpiel and run tests
-RUN python3 -m pip install .
-RUN pip install nox
+RUN pip3 install .
+RUN pip3 install nox
 RUN nox -s tests
 
+
 # Set WORKDIR as the output of the build
-WORKDIR /ml_project
+WORKDIR /ml_project/open_spiel
+ENTRYPOINT ["/bin/bash"]
