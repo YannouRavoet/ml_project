@@ -113,11 +113,9 @@ def main(_):
   # 1. Train the agents
   training_episodes = FLAGS.num_episodes
   for cur_episode in range(training_episodes):
-    #logging every 10000 episodes
     if cur_episode % int(1e4) == 0:
       win_rates = eval_against_random_bots(env, agents, random_agents, 1000)
       logging.info("Starting episode %s, win_rates %s", cur_episode, win_rates)
-    #training
     time_step = env.reset()
     while not time_step.last():
       player_id = time_step.observations["current_player"]

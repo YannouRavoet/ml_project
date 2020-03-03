@@ -27,8 +27,8 @@ from open_spiel.python.algorithms import random_agent
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string("game", "kuhn_poker", "Name of the game.")
-flags.DEFINE_integer("num_players", 2, "Number of players.")
+flags.DEFINE_string("game", "matching_pennies_3p", "Name of the game.")
+flags.DEFINE_integer("num_players", 3, "Number of players.")
 flags.DEFINE_integer("num_episodes", 2, "Number of episodes.")
 
 
