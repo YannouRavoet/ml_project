@@ -4,13 +4,12 @@ FROM python:3.6-slim-buster
 #install sudo and git
 RUN apt-get update && \
     apt-get upgrade -y && \
-      apt-get -y install sudo git curl
+      apt-get -y install sudo git curl graphviz libgraphviz-dev
+                                        #graphviz libgraphviz-dev: necessary to plot decision trees
 
 # Copy requirements of what OpenSpiel depends on, provided by OpenSpiel
 WORKDIR /
 ADD . /ml_project
-WORKDIR /ml_project
-RUN git clone https://github.com/deepmind/open_spiel.git
 WORKDIR /ml_project/open_spiel
 
 # Turn off apt-get interactions during installation
@@ -24,6 +23,8 @@ RUN pip3 install .
 RUN pip3 install nox
 RUN nox -s tests
 
+#used in treeviz.py
+RUN pip3 install pygraphviz
 
 # Set WORKDIR as the output of the build
 WORKDIR /ml_project/open_spiel
