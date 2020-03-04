@@ -3,7 +3,7 @@ A project focussed on the application of Game Theory, Reinforcement Learning and
 
 
 ### Docker
-The dockerfile starts from a tensorflow build with GPU-support and adds the OpenSpiel library (and dependencies).
+The dockerfile starts from a python:3.6-slim-buster build and adds the OpenSpiel library (and dependencies).
 
     docker image build -t open_spiel .
 To test whether everything runs, start a new container and run the tic_tac_toe example. It is also a good idea to test whether you can use the pyspiel library and modules inside your code.
