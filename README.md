@@ -6,9 +6,13 @@ A project focussed on the application of Game Theory, Reinforcement Learning and
 The dockerfile starts from a tensorflow build with GPU-support and adds the OpenSpiel library (and dependencies).
 
     docker image build -t open_spiel .
-To test whether everything runs, start a new container and run the tic_tac_toe example
+To test whether everything runs, start a new container and run the tic_tac_toe example. It is also a good idea to test whether you can use the pyspiel library and modules inside your code.
 
+    #testing a built example
     open_spiel/build/examples/example --game=tic_tac_toe
+    #import pyspiel and modules inside a python shell
+    import pyspiel
+    from open_spiel.python import rl_environment
     
 To be able to see plots in the SciView tab of PyCharm whilst using a docker container you need to:
 
