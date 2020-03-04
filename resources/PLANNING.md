@@ -1,5 +1,5 @@
-#PLANNING
-##Report 1 - Benchmarking Matrix Games
+# PLANNING
+## Report 1 - Benchmarking Matrix Games
     deadline = 20 March, 2020 --- report ≤ 4 pages
 * **Literature review**
     * Matrix Games
@@ -9,9 +9,8 @@
         * [biased rock-paper-scissors](https://en.wikipedia.org/wiki/Rock_paper_scissors) = zero-sum game
     * Q-learning
     * Learning Automata
-    * Nash equilibria, equations
+    * Nash equilibria, Pareto Optimality
     * Replicator equations
-    * Pareto Optimality
     * Phase portraits
 * **Independent learning in benchmark matrix games**
     * implement RL algorithms
