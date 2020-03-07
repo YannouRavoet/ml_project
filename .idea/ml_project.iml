@@ -3,7 +3,6 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/open_spiel" isTestSource="false" />
     </content>
     <orderEntry type="jdk" jdkName="Remote Python 3.6.10 Docker (open_spiel:latest)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
