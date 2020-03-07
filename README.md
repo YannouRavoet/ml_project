@@ -1,6 +1,10 @@
 # Machine Learning: Project
 A project focussed on the application of Game Theory, Reinforcement Learning and Deep Learning in a multi-agent setting using the Google DeepMind OpenSpiel library. This project was made in the context of the 'Machine Learning: Project' (H0T25A) course at the KU Leuven.
 
+       git clone https://github.com/YannouRavoet/ml_project/tree/master
+       #if the open_spiel directory is not cloning correctly
+       cd ml_project
+       git clone https://github.com/deepmind/open_spiel
 
 ### Docker
 The dockerfile starts from a python:3.6-slim-buster build and adds the OpenSpiel library (and dependencies).
