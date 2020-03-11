@@ -1,12 +1,13 @@
-from utils import _prisonners_dilemma_easy, _matching_pennies_easy, _battle_of_the_sexes_easy, _rock_paper_scissors_easy
+from utils import _battle_of_the_sexes_easy
 from utils import _phaseplot, _trajectoryplot
 import numpy as np
 import pyspiel
-import logging
 from absl import app
 from open_spiel.python import rl_environment
 from open_spiel.python.algorithms import tabular_qlearner
 from open_spiel.python.algorithms import random_agent
+
+from algorithms import boltzmann_QLearner, boltzmann_FAQLeaner
 
 #source: open_spiel/python/examples/tic_tac_toe_qlearner.py
 """Evaluates `trained_agents` against `eval_agents` for `num_episodes`."""
@@ -39,26 +40,27 @@ def eval_against_agents(env, trained_agents, eval_agents, num_episodes):
 
 def train_qlearning(agents, env, training_episodes, random_agents):
     eval_episodes = 1000
+    state_history = []
     for cur_episode in range(training_episodes):
-        if cur_episode % int(1e4) == 0:
-            eval_against_agents(env, agents, random_agents, eval_episodes)
-        time_step = env.reset()
-        while not time_step.last(): #NOT REALLY NECESSARY FOR ONE-SHOT GAMES
-            agents_output = [agent.step(time_step, is_evaluation=False) for agent in agents]    #agent step and training
-            action_list = [agent_output.action for agent_output in agents_output]               #reformating StepOutput to [actions]
-            time_step = env.step(action_list)                                                   #progressing the environment
+        #if cur_episode % int(training_episodes/3) == 0:
+            #eval_against_agents(env, agents, random_agents, eval_episodes)
+        agent_outputs, action_list = _env_play_episode(env, agents, evaluating=False)
+        state_history.append([step_output.probs for step_output in agent_outputs])
 
-        for agent in agents:
-            agent.step(time_step)                                                               #resetting the agents
+    return state_history
+
+def _env_play_episode(env, agents, evaluating=False):
+    time_step = env.reset()
+    agents_output = [agent.step(time_step, is_evaluation = evaluating) for agent in agents]                 #agent step (no training since no last state information) => only action selection
+    action_list = [agent_output.action for agent_output in agents_output]       #reformating StepOutput to [actions]
+    time_step = env.step(action_list)                                           #progressing the environment
+    for agent in agents:
+        agent.step(time_step, is_evaluation = evaluating)                         #preparing agents for next episode AND/OR training
+    return agents_output, action_list
 
 def play_episode(env, agents):
     # PLAY
-    time_step = env.reset()
-    agents_output = [agent.step(time_step) for agent in agents]
-    action_list = [agent_output.action for agent_output in agents_output]
-    time_step = env.step(action_list)
-    for agent in agents:
-        agent.step(time_step)
+    agents_output, action_list = _env_play_episode(env, agents, evaluating=True)
 
     # PRINT
     for pid, step_output in enumerate(agents_output):
@@ -73,15 +75,14 @@ def play_episode(env, agents):
     returns = env.get_state.returns()
     for pid in range(env.num_players):
         print("Utility for player {} is {}".format(pid, returns[pid]))
-    print("-"*80)
+    print("-" * 80)
 
 
 def main(_):
     # LOAD GAMES
-    print(pyspiel.registered_games())
-    # games = [_rock_paper_scissors_easy(), _battle_of_the_sexes_easy(), _matching_pennies_easy(),
-    #          _prisonners_dilemma_easy()]
-    games = [pyspiel.load_game("matrix_sh"), pyspiel.load_game("matrix_mp"), pyspiel.load_game("matrix_pd"),  _battle_of_the_sexes_easy(), pyspiel.load_game("matrix_rps")]
+    # print(pyspiel.registered_games())
+    games = [pyspiel.load_game("matrix_sh"), pyspiel.load_game("matrix_rps"), pyspiel.load_game("matrix_mp"), pyspiel.load_game("matrix_pd"),  _battle_of_the_sexes_easy()]
+    # games = [pyspiel.load_game("matrix_mp")]
     for game in games:
         print(game.get_type().long_name.upper())
         state = game.new_initial_state()
@@ -92,30 +93,30 @@ def main(_):
         _phaseplot(game)
         # RL Part
         env = rl_environment.Environment(game=game)
-        env.reset()
         num_actions = env.action_spec()["num_actions"]
         agents = [
-            #removing the randomness, brings the action-probabilities to a Nash equilibrium.
-            tabular_qlearner.QLearner(player_id=idx, num_actions=num_actions, step_size=0.5, epsilon=0)
+            # removing the randomness, brings the action-probabilities to a pure strategy Nash equilibrium
+            tabular_qlearner.QLearner(player_id=idx, num_actions=num_actions, step_size=0.5, epsilon=0.2)
+            # boltzmann_QLearner.Boltzman_QLearner(player_id=idx, num_actions=num_actions, step_size=0.001, temperature = 1, temperature_annealing=0.9999, temperature_min=0.005)
+            # boltzmann_FAQLeaner.Boltzmann_FAQLearner(player_id=idx, num_actions=num_actions, step_size=0.0001, temperature = 1, temperature_annealing=0.9999, temperature_min=0.005, beta = 0.0001)
             for idx in range(env.num_players)
         ]
         random_agents = [
             random_agent.RandomAgent(player_id=idx, num_actions=num_actions)
             for idx in range(env.num_players)
         ]
-        #RANDOM AGENTS AGAINST RANDOM AGENTS
-        print(f"Baseline evaluation (untrained agents against random agents)...")
-        eval_against_agents(env, agents, random_agents, 1000)
         # PLAY BEFORE TRAIN
         print("BEFORE TRAINING: 1 episode of self-play")
-        play_episode(env, agents)
+        #play_episode(env, agents)
 
         # TRAIN
-        train_qlearning(agents, env, int(2e4+1), random_agents)
+        state_history = train_qlearning(agents, env, int(1000), random_agents)
 
+        # TRAJECTORY PLOT
+        _trajectoryplot(game, state_history)
         # PLAY AFTER TRAIN
         print("AFTER TRAINING: 1 episode of self-play")
-        play_episode(env, agents)
+        #play_episode(env, agents)
         print("-"*80)
 
 

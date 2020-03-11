@@ -14,9 +14,9 @@ def _prisonners_dilemma_easy():                                                 
                                       [[-6, -12], [0, -3]])
 
 def _battle_of_the_sexes_easy():                                                                        #       COORDINATION
-    return pyspiel.create_matrix_game("battle_of_the_sexes", "Battle of the Sexes",                     #        Ballet  Fight
-                                      ["Ballet", "Fight"], ["Ballet", "Fight"],                         #Ballet  2,1     0,0
-                                      [[2, 0], [0, 1]],                                                 #Fight   0,0     1,2
+    return pyspiel.create_matrix_game("battle_of_the_sexes", "Battle of the Sexes",                     #        Ballet  Movies
+                                      ["Ballet", "Movies"], ["Ballet", "Movies"],                       #Ballet  2,1     0,0
+                                      [[2, 0], [0, 1]],                                                 #Movies  0,0     1,2
                                       [[1, 0], [0, 2]])
 
 def _rock_paper_scissors_easy():                                                                        #                 ZERO-SUM
@@ -31,7 +31,7 @@ from open_spiel.python.egt import visualization, dynamics, utils
 from matplotlib.pyplot import figure, title, xlabel, ylabel, show
 
 #TODO: Add labels to RPS plot
-plot_labels = {"matrix_rps": [],
+plot_labels = {"matrix_rps": ["Rock", "Paper", "Scissors"],
                "matrix_mp": ["Player 1: prob of choosing Heads", "Player 2: prob of choosing Heads"],
                "matrix_pd":["Player 1: prob of choosing Cooperate", "Player 2: prob of choosing Cooperate"],
                "battle_of_the_sexes":["Player 1: prob of choosing Ballet", "Player 2: prob of choosing Ballet"],
@@ -45,13 +45,21 @@ def _phaseplot(game):
     ax = fig.add_subplot(111, projection="2x2") if is_2x2 else fig.add_subplot(111, projection="3x3")
     #ax.streamplot(dyn)
     ax.quiver(dyn)
-    title(game.get_type().long_name.upper())
     if is_2x2:
-         xlabel(plot_labels[game.get_type().short_name][0])
-         ylabel(plot_labels[game.get_type().short_name][1])
+        ax.set_xlabel(plot_labels[game.get_type().short_name][0])
+        ax.set_ylabel(plot_labels[game.get_type().short_name][1])
+    else:
+        ax.set_labels(plot_labels[game.get_type().short_name])
+    title(game.get_type().long_name.upper())
+
     show()
 
 
-import numpy as np
-def _trajectoryplot(game):
+import matplotlib.pyplot as plt
+def _trajectoryplot(game, state_history):
+    x = [hist[0][0] for hist in state_history]
+    y = [hist[1][0] for hist in state_history]
+    plt.scatter(x, y)
+    title(game.get_type().long_name.upper())
+    plt.show()
     return

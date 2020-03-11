@@ -30,6 +30,7 @@ RUN nox -s tests
 
 #used in treeviz.py
 RUN pip3 install pygraphviz
+RUN pip3 install scikit-learn
 
 # Set WORKDIR as the output of the build
 WORKDIR /ml_project/open_spiel

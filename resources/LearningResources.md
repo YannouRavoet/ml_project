@@ -7,5 +7,9 @@
 * [Jupyter Notebook: Python Implementation](http://systems-sciences.uni-graz.at/etextbook/gametheory/replicator.html)
 ### Fictitious play:
 * [YouTube: Manual Iterations on Blackboard](https://www.youtube.com/watch?v=WQ2DkirUZHI)
-### Lenient Boltzmann Q-Learning (=LFAQ)
+### Boltzmann Q-Learning
+* [Paper: Dynamics of Boltzmann Q-Learning inTwo-Player Two-Action Games](https://arxiv.org/pdf/1109.1528.pdf)
+### Frequency Adjusted Q-Learning(=FAQ)
+* [Paper: Frequency adjusted multiagent Q-learning](https://www.researchgate.net/publication/221454203_Frequency_adjusted_multiagent_Q-learning)
+### Lenient Frequency Adjusted Boltzmann Q-Learning (=LFAQ)
 * [Paper: Lenient Frequency Adjusted Q-learning](http://www.flowermountains.nl/pub/Bloembergen2010lfaq.pdf)
