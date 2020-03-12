@@ -4,10 +4,9 @@ import numpy as np
 import pyspiel
 from absl import app
 from open_spiel.python import rl_environment
-from open_spiel.python.algorithms import tabular_qlearner
 from open_spiel.python.algorithms import random_agent
 
-from algorithms import boltzmann_QLearner, boltzmann_FAQLeaner
+from algorithms import epsilongreedy_QLearner,boltzmann_QLearner, boltzmann_FAQLeaner,  boltzmann_LFAQLearner
 
 #source: open_spiel/python/examples/tic_tac_toe_qlearner.py
 """Evaluates `trained_agents` against `eval_agents` for `num_episodes`."""
@@ -24,7 +23,7 @@ def eval_against_agents(env, trained_agents, eval_agents, num_episodes):
             #while not time_step.last(): #not really necessary for ONE-SHOT GAME...
             agents_output = [agent.step(time_step, is_evaluation=True) for agent in cur_agents]
             action_list = [agent_output.action for agent_output in agents_output]
-            time_step = env.step(action_list)
+            env.step(action_list)
             if batch==0:
                 returns_agents[0][0] += env.get_state.returns()[0]          #TRAINED AGENT RETURN
                 returns_agents[1][1] += env.get_state.returns()[1]          #EVAL AGENT RETURN
@@ -46,17 +45,16 @@ def train_qlearning(agents, env, training_episodes, random_agents):
             #eval_against_agents(env, agents, random_agents, eval_episodes)
         agent_outputs, action_list = _env_play_episode(env, agents, evaluating=False)
         state_history.append([step_output.probs for step_output in agent_outputs])
-
     return state_history
 
 def _env_play_episode(env, agents, evaluating=False):
     time_step = env.reset()
-    agents_output = [agent.step(time_step, is_evaluation = evaluating) for agent in agents]                 #agent step (no training since no last state information) => only action selection
-    action_list = [agent_output.action for agent_output in agents_output]       #reformating StepOutput to [actions]
-    time_step = env.step(action_list)                                           #progressing the environment
+    agent_outputs = [agent.step(time_step, is_evaluation = evaluating) for agent in agents]                 #agent step (no training since no last state information) => only action selection
+    action_list = [agent_output.action for agent_output in agent_outputs]                                   #reformating StepOutput to [actions]
+    time_step = env.step(action_list)                                                                       #progressing the environment
     for agent in agents:
-        agent.step(time_step, is_evaluation = evaluating)                         #preparing agents for next episode AND/OR training
-    return agents_output, action_list
+        agent.step(time_step, is_evaluation = evaluating)                                                   #preparing agents for next episode AND/OR training
+    return agent_outputs, action_list
 
 def play_episode(env, agents):
     # PLAY
@@ -77,7 +75,6 @@ def play_episode(env, agents):
         print("Utility for player {} is {}".format(pid, returns[pid]))
     print("-" * 80)
 
-
 def main(_):
     # LOAD GAMES
     # print(pyspiel.registered_games())
@@ -96,9 +93,10 @@ def main(_):
         num_actions = env.action_spec()["num_actions"]
         agents = [
             # removing the randomness, brings the action-probabilities to a pure strategy Nash equilibrium
-            tabular_qlearner.QLearner(player_id=idx, num_actions=num_actions, step_size=0.5, epsilon=0.2)
-            # boltzmann_QLearner.Boltzman_QLearner(player_id=idx, num_actions=num_actions, step_size=0.001, temperature = 1, temperature_annealing=0.9999, temperature_min=0.005)
-            # boltzmann_FAQLeaner.Boltzmann_FAQLearner(player_id=idx, num_actions=num_actions, step_size=0.0001, temperature = 1, temperature_annealing=0.9999, temperature_min=0.005, beta = 0.0001)
+             epsilongreedy_QLearner.EpsilonGreedy_QLearner(player_id=idx, num_actions=num_actions, step_size=0.0001, discount_factor=1, epsilon=0.8, epsilon_annealing=0.999, epsilon_min=0)
+            # boltzmann_QLearner.Boltzman_QLearner(player_id=idx, num_actions=num_actions, step_size=0.001, discount_factor=1, temperature = 1, temperature_annealing=0.999, temperature_min=0.003)
+            # boltzmann_FAQLeaner.Boltzmann_FAQLearner(player_id=idx, num_actions=num_actions, step_size=0.0001, discount_factor=1, temperature = 1, temperature_annealing=0.9999, temperature_min=0.005, beta = 0.0001)
+            # boltzmann_LFAQLearner.Boltzmann_LFAQLearner(player_id=idx, num_actions=num_actions, step_size=0.0001, discount_factor=1, temperature = 1, temperature_annealing=0.9999, temperature_min=0.005, beta = 0.0001, k=5)
             for idx in range(env.num_players)
         ]
         random_agents = [
@@ -107,16 +105,16 @@ def main(_):
         ]
         # PLAY BEFORE TRAIN
         print("BEFORE TRAINING: 1 episode of self-play")
-        #play_episode(env, agents)
+        play_episode(env, agents)
 
         # TRAIN
-        state_history = train_qlearning(agents, env, int(1000), random_agents)
+        state_history = train_qlearning(agents, env, int(1e4), random_agents)
 
         # TRAJECTORY PLOT
         _trajectoryplot(game, state_history)
         # PLAY AFTER TRAIN
         print("AFTER TRAINING: 1 episode of self-play")
-        #play_episode(env, agents)
+        play_episode(env, agents)
         print("-"*80)
 
 

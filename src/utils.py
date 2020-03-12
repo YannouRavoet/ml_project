@@ -43,7 +43,7 @@ def _phaseplot(game):
         else dynamics.SinglePopulationDynamics(payoff_tensor, dynamics.replicator)
     fig = figure(figsize=(4, 4))
     ax = fig.add_subplot(111, projection="2x2") if is_2x2 else fig.add_subplot(111, projection="3x3")
-    #ax.streamplot(dyn)
+    #ax.streamplot(dyn, density=0.5)
     ax.quiver(dyn)
     if is_2x2:
         ax.set_xlabel(plot_labels[game.get_type().short_name][0])
@@ -51,15 +51,25 @@ def _phaseplot(game):
     else:
         ax.set_labels(plot_labels[game.get_type().short_name])
     title(game.get_type().long_name.upper())
-
     show()
 
 
 import matplotlib.pyplot as plt
+import numpy as np
 def _trajectoryplot(game, state_history):
-    x = [hist[0][0] for hist in state_history]
-    y = [hist[1][0] for hist in state_history]
-    plt.scatter(x, y)
+
+    is_2x2 = game.num_cols() == 2
+    x = [hist[0][0] for hist in state_history]                  #take the prob of choosing the first action for player 1
+    y = [hist[1][0] for hist in state_history]                  #take the prob of choosing the first action for player 2
+    #p =np.poly1d(np.polynomial.polynomial.polyfit(x, y, 1))
+    #plt.plot(x, p(x), "r")
+    plt.scatter(x,y)
+    plt.xlim(0,1)
+    plt.ylim(0,1)
     title(game.get_type().long_name.upper())
+
+    if is_2x2:
+        plt.xlabel(plot_labels[game.get_type().short_name][0])
+        plt.ylabel(plot_labels[game.get_type().short_name][1])
     plt.show()
     return
