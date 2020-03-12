@@ -78,9 +78,10 @@ def play_episode(env, agents):
 def main(_):
     # LOAD GAMES
     # print(pyspiel.registered_games())
-    games = [pyspiel.load_game("matrix_sh"), pyspiel.load_game("matrix_rps"), pyspiel.load_game("matrix_mp"), pyspiel.load_game("matrix_pd"),  _battle_of_the_sexes_easy()]
-    # games = [pyspiel.load_game("matrix_mp")]
+    # games = [pyspiel.load_game("matrix_sh"), pyspiel.load_game("matrix_rps"), pyspiel.load_game("matrix_mp"), pyspiel.load_game("matrix_pd"),  _battle_of_the_sexes_easy()]
+    games = [pyspiel.load_game("matrix_sh")]
     for game in games:
+        #TODO: Once the trajectory plot works, a for loop around this to have multiple population starting points
         print(game.get_type().long_name.upper())
         state = game.new_initial_state()
         print(state)
@@ -93,10 +94,13 @@ def main(_):
         num_actions = env.action_spec()["num_actions"]
         agents = [
             # removing the randomness, brings the action-probabilities to a pure strategy Nash equilibrium
-             epsilongreedy_QLearner.EpsilonGreedy_QLearner(player_id=idx, num_actions=num_actions, step_size=0.0001, discount_factor=1, epsilon=0.8, epsilon_annealing=0.999, epsilon_min=0)
+            # epsilongreedy_QLearner.EpsilonGreedy_QLearner(player_id=idx, num_actions=num_actions, step_size=0.0001, discount_factor=1, epsilon=0.8, epsilon_annealing=0.999, epsilon_min=0)
             # boltzmann_QLearner.Boltzman_QLearner(player_id=idx, num_actions=num_actions, step_size=0.001, discount_factor=1, temperature = 1, temperature_annealing=0.999, temperature_min=0.003)
             # boltzmann_FAQLeaner.Boltzmann_FAQLearner(player_id=idx, num_actions=num_actions, step_size=0.0001, discount_factor=1, temperature = 1, temperature_annealing=0.9999, temperature_min=0.005, beta = 0.0001)
-            # boltzmann_LFAQLearner.Boltzmann_LFAQLearner(player_id=idx, num_actions=num_actions, step_size=0.0001, discount_factor=1, temperature = 1, temperature_annealing=0.9999, temperature_min=0.005, beta = 0.0001, k=5)
+            # intuition: learning rate can be high since we are likely to have a good action between the k action
+            #            k doesn't have to be very high, since with only 2 or 3 actions for 2 players, there is a fairly high chance of having the Pareto-optimal state
+            #            most interesting games to look at are probably coordination games: stag hunt and prisoner's dilemma.
+             boltzmann_LFAQLearner.Boltzmann_LFAQLearner(player_id=idx, num_actions=num_actions, step_size=0.6, discount_factor=1, temperature = 1, temperature_annealing=0.999, temperature_min=0.005, beta = 0.0001, k=10)
             for idx in range(env.num_players)
         ]
         random_agents = [
@@ -108,9 +112,9 @@ def main(_):
         play_episode(env, agents)
 
         # TRAIN
-        state_history = train_qlearning(agents, env, int(1e4), random_agents)
+        state_history = train_qlearning(agents, env, int(1e6), random_agents)       #needs to be high for LFAQ
 
-        # TRAJECTORY PLOT
+        #TODO: Fix trajectory plot
         _trajectoryplot(game, state_history)
         # PLAY AFTER TRAIN
         print("AFTER TRAINING: 1 episode of self-play")

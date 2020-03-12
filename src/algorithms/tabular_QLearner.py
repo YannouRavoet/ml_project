@@ -9,7 +9,9 @@ import abc
 from open_spiel.python import rl_agent
 import random
 
-
+#based on open_spiel.python.algorithms.tabular_qlearner
+#but has a flexible exploration function
+#random q_value initialization (for population trajectory plots = different starting points)
 class QLearner(rl_agent.AbstractAgent):
     def __init__(self,
                  player_id,

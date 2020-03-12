@@ -25,15 +25,14 @@ class Boltzmann_LFAQLearner(Boltzmann_FAQLearner):
 
         # Learn step: don't learn during evaluation or at first agent steps.
         if self._prev_info_state and not is_evaluation:
-            target = time_step.rewards[self._player_id]                                                           #target = REWARD + DISCOUNT * MAX Q_VALUE[LEGAL ACTIONS]
-            self._k_rewards.append(target)
+            self._k_rewards.append(time_step.rewards[self._player_id])
             self._k_actions.append(self._prev_action)
             self._k_probs.append(self._prev_probs)
             if len(self._k_actions) == self._k:
                 self._exploration = max(self._exploration * self._exploration_annealing, self._exploration_min)       #EXPLORATION ANNEALING
                 best_index = np.where(self._k_rewards == np.amax(self._k_rewards))[0][0]
-                action = self._k_actions[best_index]
-                probs = self._k_probs[best_index]
+                self._prev_action = self._k_actions[best_index]
+                self._prev_probs = self._k_probs[best_index]
                 target = self._k_rewards[best_index]
                 if not time_step.last(): # no legal actions in last timestep
                     target += self._discount_factor * max(
