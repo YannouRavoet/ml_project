@@ -22,4 +22,5 @@ class Boltzmann_FAQLearner(Boltzman_QLearner):
 
     def _train_update(self):
         # FAQ: Q_i(t+1) = Q_i(t) + min(B/x_i, 1) * alpha * [ r(t+1) + gamma*max_j Q_j(t) - Q_i(t) ]
-        self._q_values[self._prev_info_state][self._prev_action] += (min(self._beta / self._prev_probs[self._prev_action], 1) * self._step_size * self._last_loss_value)
+        self._q_values[self._prev_info_state][self._prev_action] += 
+            (min(self._beta / self._prev_probs[self._prev_action], 1) * self._step_size * self._last_loss_value)
