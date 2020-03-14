@@ -56,7 +56,7 @@ def _phaseplot(game):
 
 
 import matplotlib.pyplot as plt
-def _trajectoryplot(game, state_history):
+def _trajectoryplot(game, population_histories):
     is_2x2 = game.num_cols() == 2
     if is_2x2:
         payoff_tensor = utils.game_payoffs_array(game)
@@ -65,11 +65,12 @@ def _trajectoryplot(game, state_history):
         fig = figure(figsize=(4, 4))
         ax = fig.add_subplot(111, projection="2x2")
         ax.quiver(dyn)
-        x = [hist[0][0] for hist in state_history]                  #take the prob of choosing the first action for player 1
-        y = [hist[1][0] for hist in state_history]                  #take the prob of choosing the first action for player 2
-        plt.plot(x,y)
-        plt.xlim(0,1)
-        plt.ylim(0,1)
+        for pop_hist in population_histories:
+            x = [hist[0][0] for hist in pop_hist]                  #take the prob of choosing the first action for player 1
+            y = [hist[1][0] for hist in pop_hist]                  #take the prob of choosing the first action for player 2
+            plt.plot(x,y)
+        # plt.xlim(0,1)
+        # plt.ylim(0,1)
         title(game.get_type().long_name.upper())
         plt.xlabel(plot_labels[game.get_type().short_name][0])
         plt.ylabel(plot_labels[game.get_type().short_name][1])
