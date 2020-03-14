@@ -16,13 +16,13 @@ from algorithms import epsilongreedy_QLearner,boltzmann_QLearner, boltzmann_FAQL
 ##                      most interesting games to look at are probably coordination games: stag hunt and prisoner's dilemma.
 FLAGS = flags.FLAGS                                                                  #TUNED:       x      v      x       x
 flags.DEFINE_string("learner", "lfaq", "name of the learner")                        #options:   eps   boltz   faq     lfaq
-flags.DEFINE_float("lr", 0.6, "learning rate")                                   #options:   0.001   0.01     0.1     0.5
+flags.DEFINE_float("lr", 0.8, "learning rate")                                   #options:   0.001   0.01     0.1     0.5
 flags.DEFINE_float("expl", 1, "initial exploration rate")                         #options:   1      0.6      1       1
 flags.DEFINE_float("expl_ann", 0.99, "explorate annealing rate")                    #options:   0.99  0.99   0.999   0.999
-flags.DEFINE_float("expl_min", 0.003, "minimum exploration value")                  #options:   0     0.003   0.003   0.003
+flags.DEFINE_float("expl_min", 0.009, "minimum exploration value")                  #options:   0     0.003   0.003   0.003
 flags.DEFINE_float("beta", 0.001,"(frequency adjusted) beta-value")                 #options:   /     /       0.01    0.01
 flags.DEFINE_integer("k", 8, "(lenient) k-value")                                  #options:   /     /       /       8
-flags.DEFINE_integer("train_iter",int(3e5),"number of training iterations")         #options:   5e2   5e2     1e4     5e5
+flags.DEFINE_integer("train_iter",int(6e5),"number of training iterations")         #options:   5e2   5e2     1e4     5e5
 flags.DEFINE_integer("pop_iter", 3, "number of times to train a set of agents")     #options:   7    7      10      4
 
 #source: open_spiel/python/examples/tic_tac_toe_qlearner.py
