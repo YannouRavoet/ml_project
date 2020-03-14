@@ -29,6 +29,7 @@ def _rock_paper_scissors_easy():                                                
 #open_spiel/python/egt/visualization_test.py
 from open_spiel.python.egt import visualization, dynamics, utils
 from matplotlib.pyplot import figure, title, xlabel, ylabel, show
+from dynamics import LenientMultiPopulationDynamics, boltzmann_faqlearning
 
 #TODO: Add labels to RPS plot
 plot_labels = {"matrix_rps": ["Rock", "Paper", "Scissors"],
@@ -39,11 +40,11 @@ plot_labels = {"matrix_rps": ["Rock", "Paper", "Scissors"],
 def _phaseplot(game):
     is_2x2 = game.num_cols() == 2
     payoff_tensor = utils.game_payoffs_array(game)
-    dyn = dynamics.MultiPopulationDynamics(payoff_tensor, dynamics.replicator) if is_2x2 \
+    dyn = LenientMultiPopulationDynamics(payoff_tensor, boltzmann_faqlearning) if is_2x2 \
         else dynamics.SinglePopulationDynamics(payoff_tensor, dynamics.replicator)
     fig = figure(figsize=(4, 4))
     ax = fig.add_subplot(111, projection="2x2") if is_2x2 else fig.add_subplot(111, projection="3x3")
-    #ax.streamplot(dyn, density=0.5)
+    # ax.streamplot(dyn, density=0.5)
     ax.quiver(dyn)
     if is_2x2:
         ax.set_xlabel(plot_labels[game.get_type().short_name][0])
@@ -58,18 +59,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 def _trajectoryplot(game, state_history):
 
-    is_2x2 = game.num_cols() == 2
-    x = [hist[0][0] for hist in state_history]                  #take the prob of choosing the first action for player 1
-    y = [hist[1][0] for hist in state_history]                  #take the prob of choosing the first action for player 2
-    #p =np.poly1d(np.polynomial.polynomial.polyfit(x, y, 1))
-    #plt.plot(x, p(x), "r")
-    plt.scatter(x,y)
-    plt.xlim(0,1)
-    plt.ylim(0,1)
-    title(game.get_type().long_name.upper())
-
-    if is_2x2:
-        plt.xlabel(plot_labels[game.get_type().short_name][0])
-        plt.ylabel(plot_labels[game.get_type().short_name][1])
-    plt.show()
+    # is_2x2 = game.num_cols() == 2
+    # x = [hist[0][0] for hist in state_history]                  #take the prob of choosing the first action for player 1
+    # y = [hist[1][0] for hist in state_history]                  #take the prob of choosing the first action for player 2
+    # plt.plot(x,y)
+    # plt.xlim(0,1)
+    # plt.ylim(0,1)
+    # title(game.get_type().long_name.upper())
+    # if is_2x2:
+    #     plt.xlabel(plot_labels[game.get_type().short_name][0])
+    #     plt.ylabel(plot_labels[game.get_type().short_name][1])
+    # plt.show()
     return
