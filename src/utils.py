@@ -56,18 +56,22 @@ def _phaseplot(game):
 
 
 import matplotlib.pyplot as plt
-import numpy as np
 def _trajectoryplot(game, state_history):
-
-    # is_2x2 = game.num_cols() == 2
-    # x = [hist[0][0] for hist in state_history]                  #take the prob of choosing the first action for player 1
-    # y = [hist[1][0] for hist in state_history]                  #take the prob of choosing the first action for player 2
-    # plt.plot(x,y)
-    # plt.xlim(0,1)
-    # plt.ylim(0,1)
-    # title(game.get_type().long_name.upper())
-    # if is_2x2:
-    #     plt.xlabel(plot_labels[game.get_type().short_name][0])
-    #     plt.ylabel(plot_labels[game.get_type().short_name][1])
-    # plt.show()
+    is_2x2 = game.num_cols() == 2
+    if is_2x2:
+        payoff_tensor = utils.game_payoffs_array(game)
+        dyn = dynamics.MultiPopulationDynamics(payoff_tensor, dynamics.replicator)      #dynamics.replicator / dynamics.boltzmannq
+        #dyn = LenientMultiPopulationDynamics(payoff_tensor, boltzmann_faqlearning)
+        fig = figure(figsize=(4, 4))
+        ax = fig.add_subplot(111, projection="2x2")
+        ax.quiver(dyn)
+        x = [hist[0][0] for hist in state_history]                  #take the prob of choosing the first action for player 1
+        y = [hist[1][0] for hist in state_history]                  #take the prob of choosing the first action for player 2
+        plt.plot(x,y)
+        plt.xlim(0,1)
+        plt.ylim(0,1)
+        title(game.get_type().long_name.upper())
+        plt.xlabel(plot_labels[game.get_type().short_name][0])
+        plt.ylabel(plot_labels[game.get_type().short_name][1])
+        plt.show()
     return
