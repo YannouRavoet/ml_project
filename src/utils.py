@@ -27,9 +27,10 @@ def _rock_paper_scissors_easy():                                                
 
 
 #open_spiel/python/egt/visualization_test.py
-from open_spiel.python.egt import visualization, dynamics, utils
-from matplotlib.pyplot import figure, title, xlabel, ylabel, show
-from dynamics import LenientMultiPopulationDynamics, boltzmann_faqlearning
+from open_spiel.python.egt.utils import game_payoffs_array
+from open_spiel.python.egt.dynamics import SinglePopulationDynamics, MultiPopulationDynamics
+import matplotlib.pyplot as plt
+from dynamics import replicator, boltzmann_qlearning, boltzmann_faqlearning, LenientMultiPopulationDynamics
 
 #TODO: Add labels to RPS plot
 plot_labels = {"matrix_rps": ["Rock", "Paper", "Scissors"],
@@ -39,10 +40,10 @@ plot_labels = {"matrix_rps": ["Rock", "Paper", "Scissors"],
                 "matrix_sh":["Player 1: prob of choosing Stag", "Player 2: prob of choosing Stag"]}
 def _phaseplot(game):
     is_2x2 = game.num_cols() == 2
-    payoff_tensor = utils.game_payoffs_array(game)
+    payoff_tensor = game_payoffs_array(game)
     dyn = LenientMultiPopulationDynamics(payoff_tensor, boltzmann_faqlearning) if is_2x2 \
-        else dynamics.SinglePopulationDynamics(payoff_tensor, dynamics.replicator)
-    fig = figure(figsize=(4, 4))
+        else SinglePopulationDynamics(payoff_tensor, replicator)
+    fig = plt.figure(figsize=(4, 4))
     ax = fig.add_subplot(111, projection="2x2") if is_2x2 else fig.add_subplot(111, projection="3x3")
     # ax.streamplot(dyn, density=0.5)
     ax.quiver(dyn)
@@ -51,18 +52,19 @@ def _phaseplot(game):
         ax.set_ylabel(plot_labels[game.get_type().short_name][1])
     else:
         ax.set_labels(plot_labels[game.get_type().short_name])
-    title(game.get_type().long_name.upper())
-    show()
+    plt.title(game.get_type().long_name.upper())
+    plt.show()
 
 
-import matplotlib.pyplot as plt
+
+#TODO: het properste is wss om de bijhorende dynamics te gebruiken per algoritme
 def _trajectoryplot(game, population_histories):
     is_2x2 = game.num_cols() == 2
     if is_2x2:
-        payoff_tensor = utils.game_payoffs_array(game)
-        dyn = dynamics.MultiPopulationDynamics(payoff_tensor, dynamics.replicator)      #dynamics.replicator / dynamics.boltzmannq
-        #dyn = LenientMultiPopulationDynamics(payoff_tensor, boltzmann_faqlearning)
-        fig = figure(figsize=(4, 4))
+        payoff_tensor = game_payoffs_array(game)
+        dyn = MultiPopulationDynamics(payoff_tensor, boltzmann_qlearning)               # TODO: eps = replicator / boltz = boltzmann_qlearning / faq = boltzmann_faqlearning
+        #dyn = LenientMultiPopulationDynamics(payoff_tensor, boltzmann_faqlearning)     # TODO: voor de lfaq plots
+        fig = plt.figure(figsize=(4, 4))
         ax = fig.add_subplot(111, projection="2x2")
         ax.quiver(dyn)
         for pop_hist in population_histories:
@@ -71,7 +73,7 @@ def _trajectoryplot(game, population_histories):
             plt.plot(x,y)
         # plt.xlim(0,1)
         # plt.ylim(0,1)
-        title(game.get_type().long_name.upper())
+        plt.title(game.get_type().long_name.upper())
         plt.xlabel(plot_labels[game.get_type().short_name][0])
         plt.ylabel(plot_labels[game.get_type().short_name][1])
         plt.show()

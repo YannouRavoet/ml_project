@@ -1,19 +1,19 @@
-from open_spiel.python.egt.dynamics import replicator, boltzmannq, MultiPopulationDynamics
+from open_spiel.python.egt import dynamics
 import numpy as np
 #NOTE: the learning rate is set outside of these dynamics
 
-
-"""Based on equations (9) on page 12 in
+"""Cross-learning dynamics = replicator dynamics
+    Based on equations (9) on page 12 in
     https://jair.org/index.php/jair/article/view/10952"""
-#Cross-learning dynamics  = replicator dynamics
-def cross_learning(state, fitness):
-    return replicator(state, fitness)
+def replicator(state, fitness):
+    return dynamics.replicator(state, fitness)
+
 
 """Based on equations on p4 in
 https://www.researchgate.net/publication/221454203_Frequency_adjusted_multiagent_Q-learning"""
 #Boltzmann Q-learning is already defined in open_spiel.python.egt.dynamics
-def boltzmann_qlearning(state, fitness, temperature=1):
-    return boltzmannq(state, fitness, temperature)
+def boltzmann_qlearning(state, fitness, temperature=0.01):
+    return dynamics.boltzmannq(state, fitness, temperature)
 
 def boltzmann_faqlearning(state, fitness, temperature=1):
     exploitation = (1. / temperature) * replicator(state, fitness)
@@ -24,7 +24,7 @@ def boltzmann_faqlearning(state, fitness, temperature=1):
 #instead of having (for player P1) for each Action(P1): fitness(P1) = PayoffMatrix(P1) * ActionProb(P2)
 #we have: equation (7) on page 6 of http://www.flowermountains.nl/pub/Bloembergen2010lfaq.pdf
 # fitness(P1) = sum_j ( PayoffMatrix(P1)[j] * ActionProb(P2)[j] * [sum_k:Aik≤Aij(ActionProb(P2)[k])**k - sum_k:Aik<Aij(ActionProb(P2)[k])**k] / sum_k:Aik=Aij(ActionProb(P2)[k])
-class LenientMultiPopulationDynamics(MultiPopulationDynamics):
+class LenientMultiPopulationDynamics(dynamics.MultiPopulationDynamics):
     def __init__(self, payoff_tensor, dynamics, k=5):
         super(LenientMultiPopulationDynamics, self).__init__(payoff_tensor, dynamics)
         self.k = k
