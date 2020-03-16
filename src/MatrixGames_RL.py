@@ -13,7 +13,7 @@ from algorithms import epsilongreedy_QLearner,boltzmann_QLearner, boltzmann_FAQL
 ## removing the randomness, brings the action-probabilities to a pure strategy Nash equilibrium
 ## intuition lenient:   learning rate can be high since we are likely to have a good action between the k action
 ##                      k doesn't have to be very high, since with only 2 or 3 actions for 2 players, there is a fairly high chance of having the Pareto-optimal state
-##                      most interesting games to look at are probably coordination games: stag hunt and prisoner's dilemma.
+##                      most interesting games to look at are probably coordination games: stag hunt.
 
 #TODO: Dit zijn de waardes die per algoritme/per game wat aangepast moeten worden
 #TODO: hou misschien een tabel bij voor elk algoritme/game zodat we dat in het report kunnen zetten als bijlage
