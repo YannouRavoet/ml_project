@@ -13,3 +13,6 @@
 * [Paper: Frequency adjusted multiagent Q-learning](https://www.researchgate.net/publication/221454203_Frequency_adjusted_multiagent_Q-learning)
 ### Lenient Frequency Adjusted Boltzmann Q-Learning (=LFAQ)
 * [Paper: Lenient Frequency Adjusted Q-learning](http://www.flowermountains.nl/pub/Bloembergen2010lfaq.pdf)
+
+### Poker algorithms
+* [Doctorate: Reinforcement Learning fromSelf-Play in Imperfect-InformationGames (2.3)] (https://discovery.ucl.ac.uk/id/eprint/1549658/1/Heinrich_phd_FINAL.pdf)
