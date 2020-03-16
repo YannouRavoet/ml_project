@@ -22,13 +22,13 @@ from algorithms import epsilongreedy_QLearner,boltzmann_QLearner, boltzmann_FAQL
 FLAGS = flags.FLAGS                                                                 #these values also depend on the game you test on
                                                                                     #and are thus not perfect for each game
 flags.DEFINE_string("learner", "lfaq", "name of the learner")                       #options:   eps         boltz       faq         lfaq
-flags.DEFINE_float("lr", 0.1, "learning rate")                                      #options:   0.001       0.01        0.1         0.5    a lower lr means slower convergence = prettier plots
+flags.DEFINE_float("lr", 0.4, "learning rate")                                      #options:   0.001       0.01        0.1         0.5    a lower lr means slower convergence = prettier plots
 flags.DEFINE_float("expl", 0.9, "initial exploration rate")                         #options:   1           0.6         1           1
 flags.DEFINE_float("expl_ann", 0.999, "explorate annealing rate")                   #options:   0.99        0.99        0.999       0.999
-flags.DEFINE_float("expl_min", 0.01, "minimum exploration value")                   #options:   0           0.003       0.003       0.003
+flags.DEFINE_float("expl_min", 0.005, "minimum exploration value")                  #options:   0           0.003       0.003       0.003
 flags.DEFINE_float("beta", 0.001,"(frequency adjusted) beta-value")                 #options:   /           /           0.01        0.01
-flags.DEFINE_integer("k", 8, "(lenient) k-value")                                   #options:   /           /           /           8
-flags.DEFINE_integer("train_iter",int(5e6),"number of training iterations")         #options:   5e2         5e2         1e4         5e5
+flags.DEFINE_integer("k", 3, "(lenient) k-value")                                   #options:   /           /           /           8
+flags.DEFINE_integer("train_iter",int(2e5),"number of training iterations")         #options:   5e2         5e2         1e4         5e5
 flags.DEFINE_integer("pop_iter", 1, "number of times to train a set of agents")     #options:   7           7           10          4
 #TODO: ik doe meestal pop_iter=1 totdat ik deftige waardes vind, en dan pop_iter = [7..10] naargelang wat te vol wordt op de plot
 

@@ -29,6 +29,7 @@ def _rock_paper_scissors_easy():                                                
 #open_spiel/python/egt/visualization_test.py
 from open_spiel.python.egt.utils import game_payoffs_array
 from open_spiel.python.egt.dynamics import SinglePopulationDynamics, MultiPopulationDynamics
+from open_spiel.python.egt import visualization
 import matplotlib.pyplot as plt
 from dynamics import replicator, boltzmann_qlearning, boltzmann_faqlearning, LenientMultiPopulationDynamics
 
