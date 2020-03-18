@@ -1,4 +1,4 @@
-from utils import _battle_of_the_sexes_easy
+from utils import _battle_of_the_sexes_easy, _prisonners_dilemma_easy
 from utils import _phaseplot, _trajectoryplot
 import numpy as np
 import pyspiel
@@ -22,13 +22,13 @@ from algorithms import epsilongreedy_QLearner,boltzmann_QLearner, boltzmann_FAQL
 FLAGS = flags.FLAGS                                                                 #these values also depend on the game you test on
                                                                                     #and are thus not perfect for each game
 flags.DEFINE_string("learner", "lfaq", "name of the learner")                       #options:   eps         boltz       faq         lfaq
-flags.DEFINE_float("lr", 0.4, "learning rate")                                      #options:   0.001       0.01        0.1         0.5    a lower lr means slower convergence = prettier plots
-flags.DEFINE_float("expl", 0.9, "initial exploration rate")                         #options:   1           0.6         1           1
-flags.DEFINE_float("expl_ann", 0.999, "explorate annealing rate")                   #options:   0.99        0.99        0.999       0.999
-flags.DEFINE_float("expl_min", 0.005, "minimum exploration value")                  #options:   0           0.003       0.003       0.003
-flags.DEFINE_float("beta", 0.001,"(frequency adjusted) beta-value")                 #options:   /           /           0.01        0.01
-flags.DEFINE_integer("k", 3, "(lenient) k-value")                                   #options:   /           /           /           8
-flags.DEFINE_integer("train_iter",int(2e5),"number of training iterations")         #options:   5e2         5e2         1e4         5e5
+flags.DEFINE_float("lr", 0.001, "learning rate")                                      #options:   0.001       0.01        0.1         0.5    a lower lr means slower convergence = prettier plots
+flags.DEFINE_float("expl", 0.1, "initial exploration rate")                           #options:   1           0.6         1           1
+flags.DEFINE_float("expl_ann", 1, "explorate annealing rate")                   #options:   0.99        0.99        0.999       0.999
+flags.DEFINE_float("expl_min", 0.1, "minimum exploration value")                  #options:   0           0.003       0.003       0.003
+flags.DEFINE_float("beta", 0.01,"(frequency adjusted) beta-value")                 #options:   /           /           0.01        0.01
+flags.DEFINE_integer("k", 1, "(lenient) k-value")                                   #options:   /           /           /           8
+flags.DEFINE_integer("train_iter",int(2),"number of training iterations")         #options:   5e2         5e2         1e4         5e5
 flags.DEFINE_integer("pop_iter", 1, "number of times to train a set of agents")     #options:   7           7           10          4
 #TODO: ik doe meestal pop_iter=1 totdat ik deftige waardes vind, en dan pop_iter = [7..10] naargelang wat te vol wordt op de plot
 
@@ -102,7 +102,7 @@ def main(_):
     # LOAD GAMES
     # print(pyspiel.registered_games())
     # games = [pyspiel.load_game("matrix_sh"), pyspiel.load_game("matrix_rps"), pyspiel.load_game("matrix_mp"), pyspiel.load_game("matrix_pd"),  _battle_of_the_sexes_easy()]
-    games = [pyspiel.load_game("matrix_sh")] #TODO: ik doe meestal game per game (enkel de 2x2 game is in orde - trajectoryplot werkt niet voor 3x3)
+    games = [pyspiel.load_game("matrix_pd")] #TODO: ik doe meestal game per game (enkel de 2x2 game is in orde - trajectoryplot werkt niet voor 3x3)
     for game in games:
         # GAME INFO
         # print(game.get_type().long_name.upper())
@@ -150,7 +150,7 @@ def main(_):
             # play_episode(env, agents)
             # print("-"*80)
         #TODO: na een mooie plot kunt ge die saven onder ml_project/resources/plots/trajectory/<algoritme>/<game>.png
-        _trajectoryplot(game, population_histories)
+        _trajectoryplot(game, population_histories,FLAGS.k)
 
         for i in range(len(player1_probs)):
             print(f"\t\tPlayer 1\t Player 2")
