@@ -102,7 +102,7 @@ class QLearner(rl_agent.AbstractAgent):
 
     def _train_update(self):
         # ony the Q-value of the previous action is updated based on the current and future reward
-        # Q_i(t+1) = Q_i(t) + alpha * [ r(t+1) + gamma*max_j Q_j(t) - Q_i(t) ]
+        # Q_i(t+1)                                      = Q_i(t) +  alpha            * [ r(t+1) + gamma*max_j Q_j(t) - Q_i(t) ]
         self._q_values[self._prev_info_state][self._prev_action] += (self._step_size * self._last_loss_value)
 
 
