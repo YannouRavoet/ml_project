@@ -10,8 +10,8 @@ def _matching_pennies_easy():                                                   
 def _prisonners_dilemma_easy():                                                                         #       NON ZERO-SUM
     return pyspiel.create_matrix_game("prisonners_dilemma", "Prisoners Dilemma",                        #        Talk    Silent
                                       ["Talk", "Silent"], ["Talk", "Silent"],                           #Talk    -6,-6   0,-12
-                                      [[-6, 0], [-12, -3]],                                             #Silent  -12,0   -3,-3
-                                      [[-6, -12], [0, -3]])
+                                      [[3, 3], [0, 5]],                                             #Silent  -12,0   -3,-3
+                                      [[5, 0], [1,1]])
 
 def _battle_of_the_sexes_easy():                                                                        #       COORDINATION
     return pyspiel.create_matrix_game("battle_of_the_sexes", "Battle of the Sexes",                     #        Ballet  Movies
@@ -46,32 +46,37 @@ plot_labels = {"matrix_rps": ["Rock", "Paper", "Scissors"],
                "prisonners_dilemma":["Player 1: prob of choosing Defect", "Player 2: prob of choosing Defect"],
                "staghunt":["Player 1: prob of choosing Stag", "Player 2: prob of choosing Stag"]}
 
-def _phaseplot(game):
-    is_2x2 = game.num_cols() == 2
-    payoff_tensor = game_payoffs_array(game)
-    dyn = LenientMultiPopulationDynamics(payoff_tensor, boltzmann_faqlearning) if is_2x2 \
-        else SinglePopulationDynamics(payoff_tensor, replicator)
-    fig = plt.figure(figsize=(4, 4))
-    ax = fig.add_subplot(111, projection="2x2") if is_2x2 else fig.add_subplot(111, projection="3x3")
-    # ax.streamplot(dyn, density=0.5)
-    ax.quiver(dyn)
-    if is_2x2:
-        ax.set_xlabel(plot_labels[game.get_type().short_name][0])
-        ax.set_ylabel(plot_labels[game.get_type().short_name][1])
-    else:
-        ax.set_labels(plot_labels[game.get_type().short_name])
-    plt.title(game.get_type().long_name.upper())
+def _phaseplot(games, bstreamplot = False):
+    plt.figure(figsize=(32,len(games)))
+    for g, game in enumerate(games):
+        # SETUP VALUES
+        is_2x2 = game.num_cols() == 2
+        payoff_tensor = game_payoffs_array(game)
+        dyn = MultiPopulationDynamics(payoff_tensor, replicator) if is_2x2 \
+            else SinglePopulationDynamics(payoff_tensor, replicator)
+
+        # PLOTTING
+        ax = plt.subplot2grid((1, len(games)), (0, g), projection="2x2") if is_2x2 \
+            else plt.subplot2grid((1, len(games)), (0, g), projection="3x3")
+        ax.streamplot(dyn, density=0.75, color='black', linewidth=1) if bstreamplot else ax.quiver(dyn)
+
+        if is_2x2:
+            ax.set_xlabel(plot_labels[game.get_type().short_name][0])
+            ax.set_ylabel(plot_labels[game.get_type().short_name][1])
+        else:
+            ax.set_labels(plot_labels[game.get_type().short_name])
+        plt.title(game.get_type().long_name.upper())
     plt.show()
 
 
 
 #TODO: het properste is wss om de bijhorende dynamics te gebruiken per algoritme
-def _trajectoryplot(game, population_histories):
+def _trajectoryplot(game, population_histories, k = 1):
     is_2x2 = game.num_cols() == 2
     if is_2x2:
         payoff_tensor = game_payoffs_array(game)
         #dyn = MultiPopulationDynamics(payoff_tensor, boltzmann_qlearning)                               # TODO: eps = replicator / boltz = boltzmann_qlearning / faq = boltzmann_faqlearning
-        dyn = LenientMultiPopulationDynamics(payoff_tensor, boltzmann_faqlearning, k=5)         # TODO: voor de lfaq plots
+        dyn = LenientMultiPopulationDynamics(payoff_tensor, boltzmann_faqlearning, k=k)         # TODO: voor de lfaq plots
         fig = plt.figure(figsize=(4, 4))
         ax = fig.add_subplot(111, projection="2x2")
         ax.quiver(dyn)
@@ -97,7 +102,7 @@ def _dynamics_kplot(k_values, games):
     for g_, game in enumerate(games):
         payoff_tensor = game_payoffs_array(game)
         for k_, k in enumerate(k_values):
-            dyn = MultiPopulationDynamics(payoff_tensor, [boltzmann_faqlearning] *2)
+            dyn = MultiPopulationDynamics(payoff_tensor, boltzmann_faqlearning)
             ax = plt.subplot2grid((n, ks), (g_, k_), projection="2x2")
             ax.quiver(dyn)
             # plt.title(game.get_type().long_name.upper())

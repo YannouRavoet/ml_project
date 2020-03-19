@@ -102,17 +102,16 @@ def main(_):
     # LOAD GAMES
     # print(pyspiel.registered_games())
     # games = [pyspiel.load_game("matrix_sh"), pyspiel.load_game("matrix_rps"), pyspiel.load_game("matrix_mp"), pyspiel.load_game("matrix_pd"),  _battle_of_the_sexes_easy()]
-    games = [pyspiel.load_game("matrix_rps")] #TODO: ik doe meestal game per game (enkel de 2x2 game is in orde - trajectoryplot werkt niet voor 3x3)
-    _dynamics_kplot([1,2,3,5,10,25], games)
+    games = [pyspiel.load_game("matrix_sh"), pyspiel.load_game("matrix_rps"), pyspiel.load_game("matrix_mp"), pyspiel.load_game("matrix_pd"),  _battle_of_the_sexes_easy()] #TODO: ik doe meestal game per game (enkel de 2x2 game is in orde - trajectoryplot werkt niet voor 3x3)
+    # _dynamics_kplot([1,2,3,5,10,25], games) #Best to do this with 1 game and 5 or 6 k-values
+    _phaseplot(games, bstreamplot=True)       #Best to do this with 4-5 games
+
     # for game in games:
     #     # GAME INFO
     #     print(game.get_type().long_name.upper())
     #     state = game.new_initial_state()
     #     print(state)
     #     print("-"*80)
-    #
-    #     # PLOTTING
-    #     #_phaseplot(game)
     #
     #     population_histories = []
     #     player1_probs = []
@@ -158,7 +157,6 @@ def main(_):
     #         print(f"{env.get_state.action_to_string(0, 0)}:\t{player1_probs[i][0]:.2f}\t\t{player2_probs[i][0]:.2f}")
     #         print(f"{env.get_state.action_to_string(0, 1)}:\t{player1_probs[i][1]:.2f}\t\t{player2_probs[i][1]:.2f}")
     #         print()
-
 
 
 if __name__=="__main__":
