@@ -1,3 +1,8 @@
+#IntelliJ
+.idea/workspace.xml
+#Open_Spiel git repo
+open_spiel
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

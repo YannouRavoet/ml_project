@@ -1,5 +1,5 @@
-from utils import _battle_of_the_sexes_easy, _prisonners_dilemma_easy
-from utils import _phaseplot, _trajectoryplot
+from utils import _battle_of_the_sexes_easy, _prisonners_dilemma_easy,_staghunt_easy
+from utils import _phaseplot, _trajectoryplot, _dynamics_kplot
 import numpy as np
 import pyspiel
 from absl import app
@@ -22,6 +22,7 @@ from algorithms import epsilongreedy_QLearner,boltzmann_QLearner, boltzmann_FAQL
 FLAGS = flags.FLAGS                                                                 #these values also depend on the game you test on
                                                                                     #and are thus not perfect for each game
 flags.DEFINE_string("learner", "lfaq", "name of the learner")                       #options:   eps         boltz       faq         lfaq
+<<<<<<< HEAD
 flags.DEFINE_float("lr", 0.001, "learning rate")                                      #options:   0.001       0.01        0.1         0.5    a lower lr means slower convergence = prettier plots
 flags.DEFINE_float("expl", 0.1, "initial exploration rate")                           #options:   1           0.6         1           1
 flags.DEFINE_float("expl_ann", 1, "explorate annealing rate")                   #options:   0.99        0.99        0.999       0.999
@@ -29,6 +30,15 @@ flags.DEFINE_float("expl_min", 0.1, "minimum exploration value")                
 flags.DEFINE_float("beta", 0.001,"(frequency adjusted) beta-value")                 #options:   /           /           0.01        0.01
 flags.DEFINE_integer("k", 8, "(lenient) k-value")                                   #options:   /           /           /           8
 flags.DEFINE_integer("train_iter",int(500000),"number of training iterations")         #options:   5e2         5e2         1e4         5e5
+=======
+flags.DEFINE_float("lr", 0.1, "learning rate")                                      #options:   0.001       0.01        0.1         0.5    a lower lr means slower convergence = prettier plots
+flags.DEFINE_float("expl", 0.95, "initial exploration rate")                         #options:   1           0.6         1           1
+flags.DEFINE_float("expl_ann", 0.7, "explorate annealing rate")                     #options:   0.99        0.99        0.999       0.999
+flags.DEFINE_float("expl_min", 0.8, "minimum exploration value")                    #options:   0           0.003       0.003       0.003
+flags.DEFINE_float("beta", 0.001,"(frequency adjusted) beta-value")                 #options:   /           /           0.01        0.01
+flags.DEFINE_integer("k", 5, "(lenient) k-value")                                   #options:   /           /           /           8
+flags.DEFINE_integer("train_iter",int(1e3),"number of training iterations")         #options:   5e2         5e2         1e4         5e5
+>>>>>>> 473ae40c6b23bbf3172b8f6a3e3886bb8d2f192b
 flags.DEFINE_integer("pop_iter", 1, "number of times to train a set of agents")     #options:   7           7           10          4
 #TODO: ik doe meestal pop_iter=1 totdat ik deftige waardes vind, en dan pop_iter = [7..10] naargelang wat te vol wordt op de plot
 
@@ -102,16 +112,17 @@ def main(_):
     # LOAD GAMES
     # print(pyspiel.registered_games())
     # games = [pyspiel.load_game("matrix_sh"), pyspiel.load_game("matrix_rps"), pyspiel.load_game("matrix_mp"), pyspiel.load_game("matrix_pd"),  _battle_of_the_sexes_easy()]
-    games = [pyspiel.load_game("matrix_mp")] #TODO: ik doe meestal game per game (enkel de 2x2 game is in orde - trajectoryplot werkt niet voor 3x3)
+
+    games = [pyspiel.load_game("matrix_sh"), pyspiel.load_game("matrix_rps"), pyspiel.load_game("matrix_mp"), pyspiel.load_game("matrix_pd"),  _battle_of_the_sexes_easy()] #TODO: ik doe meestal game per game (enkel de 2x2 game is in orde - trajectoryplot werkt niet voor 3x3)
+    # _phaseplot(games, bstreamplot=False)        #Best to do this with 4-5 games                         #if you want other dynamics, change them in utils.py::_phaseplot
+    # _dynamics_kplot([1,2,3,5,10,25], games)     #Best to do this with 4-5 game and 5 or 6 k-values      #if you want other dynamics, change them in utils.py::_dynamics_kplot
+
     for game in games:
         # GAME INFO
-        # print(game.get_type().long_name.upper())
-        # state = game.new_initial_state()
-        # print(state)
-        # print("-"*80)
-
-        # PLOTTING
-        #_phaseplot(game)
+        print(game.get_type().long_name.upper())
+        state = game.new_initial_state()
+        print(state)
+        print("-"*80)
 
         population_histories = []
         player1_probs = []
@@ -150,14 +161,13 @@ def main(_):
             # play_episode(env, agents)
             # print("-"*80)
         #TODO: na een mooie plot kunt ge die saven onder ml_project/resources/plots/trajectory/<algoritme>/<game>.png
-        _trajectoryplot(game, population_histories,FLAGS.k)
+        _trajectoryplot(game, population_histories)
 
         for i in range(len(player1_probs)):
             print(f"\t\tPlayer 1\t Player 2")
             print(f"{env.get_state.action_to_string(0, 0)}:\t{player1_probs[i][0]:.2f}\t\t{player2_probs[i][0]:.2f}")
             print(f"{env.get_state.action_to_string(0, 1)}:\t{player1_probs[i][1]:.2f}\t\t{player2_probs[i][1]:.2f}")
             print()
-
 
 
 if __name__=="__main__":
