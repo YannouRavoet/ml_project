@@ -16,17 +16,15 @@ from algorithms import epsilongreedy_QLearner,boltzmann_QLearner, boltzmann_FAQL
 ##                      most interesting games to look at are probably coordination games: stag hunt.
 
 #TODO: Dit zijn de waardes die per algoritme/per game wat aangepast moeten worden
-#TODO: hou misschien een tabel bij voor elk algoritme/game zodat we dat in het report kunnen zetten als bijlage
-#TODO: eps is een tricky one (die gaat altijd direct naar een uiterste, en ik vind niet waarom)
 #TODO: lfaq heeft veel iteraties nodig
 FLAGS = flags.FLAGS                                                                 #these values also depend on the game you test on
                                                                                     #and are thus not perfect for each game
 flags.DEFINE_string("learner", "eps", "name of the learner")                       #options:   eps         boltz       faq         lfaq
 
-flags.DEFINE_float("lr", 0.001, "learning rate")                                      #options:   0.001       0.01        0.1         0.5    a lower lr means slower convergence = prettier plots
+flags.DEFINE_float("lr", 0.001, "learning rate")                                    #options:   0.001       0.01        0.1         0.5    a lower lr means slower convergence = prettier plots
 flags.DEFINE_float("expl", 0.7, "initial exploration rate")                         #options:   1           0.6         1           1
-flags.DEFINE_float("expl_ann", 0.99, "explorate annealing rate")                     #options:   0.99        0.99        0.999       0.999
-flags.DEFINE_float("expl_min", 0.01, "minimum exploration value")                    #options:   0           0.003       0.003       0.003
+flags.DEFINE_float("expl_ann", 0.99, "explorate annealing rate")                    #options:   0.99        0.99        0.999       0.999
+flags.DEFINE_float("expl_min", 0.01, "minimum exploration value")                   #options:   0           0.003       0.003       0.003
 flags.DEFINE_float("beta", 0.001,"(frequency adjusted) beta-value")                 #options:   /           /           0.01        0.01
 flags.DEFINE_integer("k", 5, "(lenient) k-value")                                   #options:   /           /           /           8
 flags.DEFINE_integer("train_iter",int(3e3),"number of training iterations")         #options:   5e2         5e2         1e4         5e5
@@ -103,7 +101,7 @@ def main(_):
     # print(pyspiel.registered_games())
     # games = [pyspiel.load_game("matrix_sh"), pyspiel.load_game("matrix_rps"), pyspiel.load_game("matrix_mp"), pyspiel.load_game("matrix_pd"),  _battle_of_the_sexes_easy()]
     #, pyspiel.load_game("matrix_mp"), pyspiel.load_game("matrix_sh"), pyspiel.load_game("matrix_pd")
-    games = [ pyspiel.load_game("matrix_pd")] #TODO: ik doe meestal game per game (enkel de 2x2 game is in orde - trajectoryplot werkt niet voor 3x3)
+    games = [ pyspiel.load_game("matrix_pd")]
     # _phaseplot(games, bstreamplot=False)        #Best to do this with 4-5 games                         #if you want other dynamics, change them in utils.py::_phaseplot
     # _dynamics_kplot([1,2,3,5,10,25], games)     #Best to do this with 4-5 game and 5 or 6 k-values      #if you want other dynamics, change them in utils.py::_dynamics_kplot
 
