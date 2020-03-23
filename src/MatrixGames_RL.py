@@ -1,4 +1,4 @@
-from utils import _battle_of_the_sexes_easy, _prisonners_dilemma_easy,_staghunt_easy
+from utils import _battle_of_the_sexes_easy, _prisonners_dilemma_easy,_staghunt_easy, _biased_rock_paper_scissors_easy
 from utils import _phaseplot, _trajectoryplot, _dynamics_kplot
 import numpy as np
 import pyspiel
@@ -101,60 +101,60 @@ def main(_):
     # print(pyspiel.registered_games())
     # games = [pyspiel.load_game("matrix_sh"), pyspiel.load_game("matrix_rps"), pyspiel.load_game("matrix_mp"), pyspiel.load_game("matrix_pd"),  _battle_of_the_sexes_easy()]
     #, pyspiel.load_game("matrix_mp"), pyspiel.load_game("matrix_sh"), pyspiel.load_game("matrix_pd")
-    games = [ pyspiel.load_game("matrix_pd")]
-    # _phaseplot(games, bstreamplot=False)        #Best to do this with 4-5 games                         #if you want other dynamics, change them in utils.py::_phaseplot
+    games = [ _battle_of_the_sexes_easy(), pyspiel.load_game("matrix_mp"), pyspiel.load_game("matrix_sh"), pyspiel.load_game("matrix_pd"), _biased_rock_paper_scissors_easy()]
+    _phaseplot(games, bstreamplot=True)        #Best to do this with 4-5 games                         #if you want other dynamics, change them in utils.py::_phaseplot
     # _dynamics_kplot([1,2,3,5,10,25], games)     #Best to do this with 4-5 game and 5 or 6 k-values      #if you want other dynamics, change them in utils.py::_dynamics_kplot
 
-    for game in games:
-        # GAME INFO
-        # print(game.get_type().long_name.upper())
-        # state = game.new_initial_state()
-        # print(state)
-        # print("-"*80)
-
-        population_histories = []
-        player1_probs = []
-        player2_probs = []
-        for _ in range(FLAGS.pop_iter):
-            env = rl_environment.Environment(game=game)
-            num_actions = env.action_spec()["num_actions"]
-            agents = []
-            for idx in range(env.num_players):
-                if FLAGS.learner == "eps":
-                    agents.append(epsilongreedy_QLearner.EpsilonGreedy_QLearner(player_id=idx, num_actions=num_actions, step_size=FLAGS.lr, discount_factor=1, epsilon=FLAGS.expl, epsilon_annealing=FLAGS.expl_ann, epsilon_min=FLAGS.expl_min))
-                elif FLAGS.learner == "boltz":
-                    agents.append(boltzmann_QLearner.Boltzman_QLearner(player_id=idx, num_actions=num_actions, step_size=FLAGS.lr, discount_factor=1, temperature=FLAGS.expl, temperature_annealing=FLAGS.expl_ann, temperature_min=FLAGS.expl_min))
-                elif FLAGS.learner == "faq":
-                    agents.append(boltzmann_FAQLeaner.Boltzmann_FAQLearner(player_id=idx, num_actions=num_actions, step_size=FLAGS.lr, discount_factor=1, temperature=FLAGS.expl, temperature_annealing=FLAGS.expl_ann, temperature_min=FLAGS.expl_min, beta=FLAGS.beta))
-                else:
-                    agents.append(boltzmann_LFAQLearner.Boltzmann_LFAQLearner(player_id=idx, num_actions=num_actions, step_size=FLAGS.lr,discount_factor=1, temperature=FLAGS.expl, temperature_annealing=FLAGS.expl_ann,temperature_min=FLAGS.expl_min, beta=FLAGS.beta, k=FLAGS.k))
-
-            random_agents = [
-                random_agent.RandomAgent(player_id=idx, num_actions=num_actions)
-                for idx in range(env.num_players)
-            ]
-            # PLAY BEFORE TRAIN
-            # print("BEFORE TRAINING: 1 episode of self-play")
-            # play_episode(env, agents)
-
-            # TRAIN
-            history = train_qlearning(agents, env, FLAGS.train_iter, random_agents)       #needs to be high for LFAQ
-            population_histories.append(history)
-            agents_output, _ = _env_play_episode(env, agents, evaluating=True)
-            player1_probs.append(agents_output[0].probs)
-            player2_probs.append(agents_output[1].probs)
-
-            # PLAY AFTER TRAIN
-            # print("AFTER TRAINING: 1 episode of self-play")
-            # play_episode(env, agents)
-            # print("-"*80)
-        _trajectoryplot(game, population_histories, FLAGS.k)
-
-        for i in range(len(player1_probs)):
-            print(f"\t\tPlayer 1\t Player 2")
-            print(f"{env.get_state.action_to_string(0, 0)}:\t{player1_probs[i][0]:.2f}\t\t{player2_probs[i][0]:.2f}")
-            print(f"{env.get_state.action_to_string(0, 1)}:\t{player1_probs[i][1]:.2f}\t\t{player2_probs[i][1]:.2f}")
-            print()
+    # for game in games:
+    #     # GAME INFO
+    #     # print(game.get_type().long_name.upper())
+    #     # state = game.new_initial_state()
+    #     # print(state)
+    #     # print("-"*80)
+    #
+    #     population_histories = []
+    #     player1_probs = []
+    #     player2_probs = []
+    #     for _ in range(FLAGS.pop_iter):
+    #         env = rl_environment.Environment(game=game)
+    #         num_actions = env.action_spec()["num_actions"]
+    #         agents = []
+    #         for idx in range(env.num_players):
+    #             if FLAGS.learner == "eps":
+    #                 agents.append(epsilongreedy_QLearner.EpsilonGreedy_QLearner(player_id=idx, num_actions=num_actions, step_size=FLAGS.lr, discount_factor=1, epsilon=FLAGS.expl, epsilon_annealing=FLAGS.expl_ann, epsilon_min=FLAGS.expl_min))
+    #             elif FLAGS.learner == "boltz":
+    #                 agents.append(boltzmann_QLearner.Boltzman_QLearner(player_id=idx, num_actions=num_actions, step_size=FLAGS.lr, discount_factor=1, temperature=FLAGS.expl, temperature_annealing=FLAGS.expl_ann, temperature_min=FLAGS.expl_min))
+    #             elif FLAGS.learner == "faq":
+    #                 agents.append(boltzmann_FAQLeaner.Boltzmann_FAQLearner(player_id=idx, num_actions=num_actions, step_size=FLAGS.lr, discount_factor=1, temperature=FLAGS.expl, temperature_annealing=FLAGS.expl_ann, temperature_min=FLAGS.expl_min, beta=FLAGS.beta))
+    #             else:
+    #                 agents.append(boltzmann_LFAQLearner.Boltzmann_LFAQLearner(player_id=idx, num_actions=num_actions, step_size=FLAGS.lr,discount_factor=1, temperature=FLAGS.expl, temperature_annealing=FLAGS.expl_ann,temperature_min=FLAGS.expl_min, beta=FLAGS.beta, k=FLAGS.k))
+    #
+    #         random_agents = [
+    #             random_agent.RandomAgent(player_id=idx, num_actions=num_actions)
+    #             for idx in range(env.num_players)
+    #         ]
+    #         # PLAY BEFORE TRAIN
+    #         # print("BEFORE TRAINING: 1 episode of self-play")
+    #         # play_episode(env, agents)
+    #
+    #         # TRAIN
+    #         history = train_qlearning(agents, env, FLAGS.train_iter, random_agents)       #needs to be high for LFAQ
+    #         population_histories.append(history)
+    #         agents_output, _ = _env_play_episode(env, agents, evaluating=True)
+    #         player1_probs.append(agents_output[0].probs)
+    #         player2_probs.append(agents_output[1].probs)
+    #
+    #         # PLAY AFTER TRAIN
+    #         # print("AFTER TRAINING: 1 episode of self-play")
+    #         # play_episode(env, agents)
+    #         # print("-"*80)
+    #     _trajectoryplot(game, population_histories, FLAGS.k)
+    #
+    #     for i in range(len(player1_probs)):
+    #         print(f"\t\tPlayer 1\t Player 2")
+    #         print(f"{env.get_state.action_to_string(0, 0)}:\t{player1_probs[i][0]:.2f}\t\t{player2_probs[i][0]:.2f}")
+    #         print(f"{env.get_state.action_to_string(0, 1)}:\t{player1_probs[i][1]:.2f}\t\t{player2_probs[i][1]:.2f}")
+    #         print()
 
 
 if __name__=="__main__":

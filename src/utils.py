@@ -24,11 +24,11 @@ def _battle_of_the_sexes_easy():                                                
                                       [[2, 0], [0, 1]],                                                 #Movies  0,0     1,2
                                       [[1, 0], [0, 2]])
 
-def _rock_paper_scissors_easy():                                                                        #                 ZERO-SUM
-    return pyspiel.create_matrix_game("rock_paper_scissors", "Rock Paper Scissors",                     #           Rock    Paper   Scissors
-                                      ["Rock", "Paper",  "Scissors"],["Rock", "Paper",  "Scissors"],    #Rock        0,0    -1,1      1,-1
-                                      [[0, -1, 1], [1, 0, -1], [-1, 1, 0]],                             #Paper       1,-1    0,0     -1,1
-                                      [[0, 1, -1], [-1, 0, 1], [1, -1, 0]])                             #Scissor    -1,1     1,-1     0,0
+def _biased_rock_paper_scissors_easy():                                                                        #                 ZERO-SUM
+    return pyspiel.create_matrix_game("biased_rock_paper_scissors", "Biased Rock Paper Scissors",                     #           Rock    Paper   Scissors
+                                      ["Rock", "Paper",  "Scissors"],["Rock", "Paper",  "Scissors"],    #Rock        0,0    -3,3      1,-1
+                                      [[0, -3, 1], [3, 0, -2], [-1, 2, 0]],                             #Paper       3,-3    0,0     -2,2
+                                      [[0, 3, -1], [-3, 0, 2], [1, -2, 0]])                             #Scissor    -1,1     2,-2     0,0
 
 def _staghunt_easy():                                                                                   #       COORDINATION
     return pyspiel.create_matrix_game("staghunt", "StagHunt",                                           #        Stag       Hare
@@ -44,7 +44,8 @@ plot_labels = {"matrix_rps": ["Rock", "Paper", "Scissors"],
                "battle_of_the_sexes":["Player 1: prob of choosing Ballet", "Player 2: prob of choosing Ballet"],
                 "matrix_sh":["Player 1: prob of choosing Stag", "Player 2: prob of choosing Stag"],
                "prisonners_dilemma":["Player 1: prob of choosing Defect", "Player 2: prob of choosing Defect"],
-               "staghunt":["Player 1: prob of choosing Stag", "Player 2: prob of choosing Stag"]}
+               "staghunt":["Player 1: prob of choosing Stag", "Player 2: prob of choosing Stag"],
+               "biased_rock_paper_scissors": ["Rock", "Paper", "Scissors"],}
 
 def _phaseplot(games, bstreamplot = False):
     plt.figure(figsize=(32,len(games)))
