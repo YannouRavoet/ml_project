@@ -74,8 +74,8 @@ def _trajectoryplot(game, population_histories, k = 1):
     is_2x2 = game.num_cols() == 2
     if is_2x2:
         payoff_tensor = game_payoffs_array(game)
-        #dyn = MultiPopulationDynamics(payoff_tensor, boltzmann_qlearning)                      # TODO: eps = replicator / boltz = boltzmann_qlearning / faq = boltzmann_faqlearning
-        dyn = LenientMultiPopulationDynamics(payoff_tensor, boltzmann_faqlearning, k=k)         # TODO: voor de lfaq plots
+        dyn = MultiPopulationDynamics(payoff_tensor, replicator)                      # TODO: eps = replicator / boltz = boltzmann_qlearning / faq = boltzmann_faqlearning
+        #dyn = LenientMultiPopulationDynamics(payoff_tensor, boltzmann_faqlearning, k=k)         # TODO: voor de lfaq plots
         fig = plt.figure(figsize=(4, 4))
         ax = fig.add_subplot(111, projection="2x2")
         ax.quiver(dyn)
@@ -86,6 +86,8 @@ def _trajectoryplot(game, population_histories, k = 1):
         plt.title(game.get_type().long_name.upper())
         plt.xlabel(plot_labels[game.get_type().short_name][0])
         plt.ylabel(plot_labels[game.get_type().short_name][1])
+        plt.xlim(-0.01, 1.01)
+        plt.ylim(-0.01, 1.01)
         plt.show()
     return
 

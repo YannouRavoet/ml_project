@@ -38,7 +38,7 @@ class QLearner(rl_agent.AbstractAgent):
 
     def _init_q_values(self, info_state):
         for action in range(self._num_actions):
-            self._q_values[info_state][action] = random.random()
+            self._q_values[info_state][action] = random.uniform(0,1)
 
     @abc.abstractmethod
     def _exploration_function(self, info_state, legal_actions, exploration):
