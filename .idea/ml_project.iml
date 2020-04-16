@@ -9,7 +9,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/MATRIXGAMES" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/POKERS" isTestSource="false" />
     </content>
-    <orderEntry type="jdk" jdkName="Remote Python 3.6.10 Docker (open_spiel:latest)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.6 (ml_project)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
