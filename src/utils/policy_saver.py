@@ -2,7 +2,7 @@ import pickle
 import pyspiel
 from open_spiel.python.policy import TabularPolicy
 
-#module to handle saving and loading (reconstruct) policies
+#module to handle saving and loading (reconstruct) policies to a binary file using pickle
 
 def save_tabular_policy(game, policy, path):
     dict = {'game': game.get_type().short_name, 'action_probability_array': policy.action_probability_array}
