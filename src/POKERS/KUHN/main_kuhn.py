@@ -5,7 +5,7 @@ from utils_poker import command_line_action
 from open_spiel.python.algorithms import cfr, fictitious_play
 from open_spiel.python.algorithms.exploitability import exploitability
 from open_spiel.python.policy import TabularPolicy, PolicyFromCallable
-
+import policy_saver
 
 def CFR_Solving(game, iterations):
     cfr_solver = cfr.CFRSolver(game)
@@ -33,8 +33,9 @@ def print_algorithm_results(game, policy, algorithm_name):
     # print(callable_policy._callable_policy.action_probability_array)
     print("exploitability = {}".format(policy_exploitability))
 
+
 def main(_):
-    n = 10000
+    n = 100;
     game = pyspiel.load_game("kuhn_poker")  # kuhn_poker or leduc_poker
     tabular_policy = TabularPolicy(game)
     state_lookup_order = list(tabular_policy.state_lookup.keys())
@@ -46,6 +47,11 @@ def main(_):
     tabular_policy.action_probability_array = list(cfr_policy.values())
     print_algorithm_results(game, tabular_policy, "cfr")
 
+    #example: save, reload and test the policy again
+    policy_saver.save_tabular_policy(game, tabular_policy, "policies/CFR1")
+    loaded_policy = policy_saver.load_tabular_policy("policies/CFR1")
+    print_algorithm_results(game, loaded_policy, "cfr_reloaded")
+
     # XFP
     xfp_policy = XFP_Solving(game, iterations=n)
     # order the policy values based on tabular_policy order
@@ -53,6 +59,10 @@ def main(_):
     tabular_policy.action_probability_array = list(xfp_policy.values())
     print_algorithm_results(game, tabular_policy, "xfp")
 
+    #example: save, reload and test the policy again
+    policy_saver.save_tabular_policy(game, tabular_policy, "policies/XFP1")
+    loaded_policy = policy_saver.load_tabular_policy("policies/XFP1")
+    print_algorithm_results(game, loaded_policy, "xfp_reloaded")
 
 if __name__ == "__main__":
     app.run(main)
