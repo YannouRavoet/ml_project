@@ -1,5 +1,5 @@
-from MATRIXGAMES.utils import _battle_of_the_sexes_easy, _biased_rock_paper_scissors_easy
-from MATRIXGAMES.utils import _phaseplot, _trajectoryplot, _dynamics_kplot
+from MATRIXGAMES.utils_matrix import _battle_of_the_sexes_easy, _biased_rock_paper_scissors_easy
+from MATRIXGAMES.utils_matrix import _phaseplot, _trajectoryplot, _dynamics_kplot
 import numpy as np
 import pyspiel
 from absl import app
@@ -114,8 +114,8 @@ def main(_):
     # games = [pyspiel.load_game("matrix_sh"), pyspiel.load_game("matrix_rps"), pyspiel.load_game("matrix_mp"), pyspiel.load_game("matrix_pd"),  _battle_of_the_sexes_easy()]
     games = [_battle_of_the_sexes_easy(), pyspiel.load_game("matrix_mp"), pyspiel.load_game("matrix_sh"),
              pyspiel.load_game("matrix_pd"), _biased_rock_paper_scissors_easy()]
-    _phaseplot(games, bstreamplot=True)  # Best to do this with 4-5 games                         #if you want other dynamics, change them in utils.py::_phaseplot
-    _dynamics_kplot([1, 2, 3, 5, 10, 25], games)  # Best to do this with 4-5 game and 5 or 6 k-values      #if you want other dynamics, change them in utils.py::_dynamics_kplot
+    _phaseplot(games, bstreamplot=True)  # Best to do this with 4-5 games                         #if you want other dynamics, change them in utils_matrix.py::_phaseplot
+    _dynamics_kplot([1, 2, 3, 5, 10, 25], games)  # Best to do this with 4-5 game and 5 or 6 k-values      #if you want other dynamics, change them in utils_matrix.py::_dynamics_kplot
 
     for game in games:
         ## GAME INFO
