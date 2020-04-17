@@ -36,12 +36,14 @@ def print_algorithm_results(game, policy, algorithm_name):
 
 def eval_against_policy(game, policies, num_episodes):
     # input: game, 2 policies in een array, aantal games
-    # laat ze num_episodes games tegen elkaar spelen en returned win % van eerste policy
+    # laat ze num_episodes games tegen elkaar spelen en return de soms van utilities
     # zou ook moeten werken voor leduc dus misschien verplaatsen naar utils
-    wins = [0,0]
+    returns = [0,0]
 
     for i in range(num_episodes):
         state = game.new_initial_state()
+        #order veranderen elke iteratie (wie eerst mag)
+        order = i%2
         while not state.is_terminal():
             # The state can be three different types: chance node,
             # simultaneous node, or decision node
@@ -52,65 +54,79 @@ def eval_against_policy(game, policies, num_episodes):
                 action = np.random.choice(action_list, p=prob_list)
                 state.apply_action(action)
 
+
             elif state.is_simultaneous_node():
                 # Simultaneous node: sample actions for all players.
-                # niet zeker of dit correct is, niet gebruikt in kuhn poker denk ik
+                # todo: niet zeker of dit correct is, niet gebruikt in kuhn poker!!
                 chosen_actions = [
                     np.random.choice(state.legal_actions(pid), p=list(pid.action_probabilities(state).values()))
                     for pid in policies
                 ]
+                if(order):
+                    chosen_actions = reversed(chosen_actions)
                 state.apply_actions(chosen_actions)
 
             else:
                 # Decision node: sample action for the single current player
-                action = np.random.choice(state.legal_actions(state.current_player()), p=list(policies[state.current_player()].action_probabilities(state).values()))
+                # change player index adhv order:
+                player = abs(state.current_player() - order)
+                action = np.random.choice(state.legal_actions(state.current_player()), p=list(policies[player].action_probabilities(state).values()))
                 state.apply_action(action)
 
-            print(str(state))
 
-        # Game is now done. increment win of winner
-        returns = state.returns()
-        if returns[0] > returns[1]:
-            wins[0] += 1
-        else:
-            wins[1] += 1
 
-    print("player wins matrix: " + str(wins))
-    win_percentage = wins[0]/(wins[0] + wins[1])
-    print("player 0 wins: " + str(win_percentage))
-    return win_percentage
+        # Game is now done. add utilities to correct player
+        returns[0] += state.returns()[abs(0-order)]
+        returns[1] += state.returns()[abs(1-order)]
+
+    print("player utility matrix: " + str(returns))
+
+    return returns
+
 
 def main(_):
-    n = 10000;
+    n = 1;
     game = pyspiel.load_game("kuhn_poker")  # kuhn_poker or leduc_poker
-    tabular_policy = TabularPolicy(game)
-    state_lookup_order = list(tabular_policy.state_lookup.keys())
+    tabular_policy1 = TabularPolicy(game)
+    tabular_policy2 = TabularPolicy(game)
+    state_lookup_order = list(tabular_policy1.state_lookup.keys())
 
     # CFR
     cfr_policy = CFR_Solving(game, iterations=n)
     # order the policy values based on tabular_policy order
     cfr_policy = {k: cfr_policy.get(k) for k in state_lookup_order}
-    tabular_policy.action_probability_array = list(cfr_policy.values())
-    print_algorithm_results(game, tabular_policy, "cfr")
+    tabular_policy1.action_probability_array = list(list(val) for val in cfr_policy.values())
+    print_algorithm_results(game, tabular_policy1, "cfr")
 
-    #example: save, reload and test the policy again
-    policy_saver.save_tabular_policy(game, tabular_policy, "policies/CFR1")
-    loaded_policy1 = policy_saver.load_tabular_policy("policies/CFR1")
-    print_algorithm_results(game, loaded_policy1, "cfr_reloaded")
+
+    #save policy
+    #policy_saver.save_tabular_policy(game, tabular_policy1, "policies/CFR10k")
 
     # XFP
     xfp_policy = XFP_Solving(game, iterations=n)
     # order the policy values based on tabular_policy order
     xfp_policy = {k: xfp_policy.get(k) for k in state_lookup_order}
-    tabular_policy.action_probability_array = list(xfp_policy.values())
-    print_algorithm_results(game, tabular_policy, "xfp")
+    tabular_policy2.action_probability_array = list(list(val) for val in xfp_policy.values())
+    print_algorithm_results(game, tabular_policy2, "xfp")
 
-    #example: save, reload and test the policy again
-    policy_saver.save_tabular_policy(game, tabular_policy, "policies/XFP1")
-    loaded_policy2 = policy_saver.load_tabular_policy("policies/XFP1")
-    print_algorithm_results(game, loaded_policy2, "xfp_reloaded")
+    #save policy
+    #policy_saver.save_tabular_policy(game, tabular_policy2, "policies/XFP10k")
 
-    eval_against_policy(game, [loaded_policy1,loaded_policy2],1000)
+
+    #load enkele policies, "10k" staat voor aantal iteraties getraind
+    CFR10 = policy_saver.load_tabular_policy("policies/CFR10k")
+    CFR100 = policy_saver.load_tabular_policy("policies/CFR100k")
+    #XFP10 = policy_saver.load_tabular_policy("policies/XFP10k")
+
+
+    print("cfr100 vs cfr10")
+    #todo: dit zou de tweede keer het omgekeerde van de eerste keer moeten returnen, maar is zelfs niet het geval bij 1e6 iters...
+    eval_against_policy(game, [CFR100,CFR10], 10000)
+    eval_against_policy(game, [CFR10, CFR100], 10000)
+
+
+
+
 
 if __name__ == "__main__":
     app.run(main)
