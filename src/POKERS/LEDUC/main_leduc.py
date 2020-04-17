@@ -22,8 +22,11 @@ def XFP_Solving(game, iterations):
         xfp_solver.iteration()
     policy = xfp_solver.average_policy_tables()
     policy_keys = np.concatenate((list(policy[0].keys()), list(policy[1].keys())), 0)
-    policy_values = np.concatenate((list(map(lambda d: [d.get(0), d.get(1)], list(policy[0].values()))),
-                                    list(map(lambda d: [d.get(0), d.get(1)], list(policy[1].values())))), 0)
+    policy_values = np.concatenate((list(map(lambda d: [d.get(0), d.get(1),d.get(2)], list(policy[0].values()))),
+                                    list(map(lambda d: [d.get(0), d.get(1),d.get(2)], list(policy[1].values())))), 0)
+    #bevat in geval van leduc nones omdat niet elke state gedefinieerd is hierboven (?) , moeten vervangen door 0
+    policy_values = [(d if d else 0 for d in a) for a in policy_values]
+
     return dict(zip(policy_keys, policy_values))
 
 
@@ -34,13 +37,13 @@ def print_algorithm_results(game, policy, algorithm_name):
     # print(callable_policy._callable_policy.action_probability_array)
     print("exploitability = {}".format(policy_exploitability))
 
-
 def main(_):
     n = 1;
-    game = pyspiel.load_game("kuhn_poker")  # kuhn_poker or leduc_poker
+    game = pyspiel.load_game("leduc_poker")
     tabular_policy1 = TabularPolicy(game)
     tabular_policy2 = TabularPolicy(game)
     state_lookup_order = list(tabular_policy1.state_lookup.keys())
+
 
     # CFR
     cfr_policy = CFR_Solving(game, iterations=n)
@@ -49,9 +52,8 @@ def main(_):
     tabular_policy1.action_probability_array = list(list(val) for val in cfr_policy.values())
     print_algorithm_results(game, tabular_policy1, "cfr")
 
-
     #save policy
-    #policy_saver.save_tabular_policy(game, tabular_policy1, "policies/CFR10k")
+    #policy_handler.save_tabular_policy(game, tabular_policy1, "policies/CFR100")
 
     # XFP
     xfp_policy = XFP_Solving(game, iterations=n)
@@ -61,21 +63,21 @@ def main(_):
     print_algorithm_results(game, tabular_policy2, "xfp")
 
     #save policy
-    #policy_saver.save_tabular_policy(game, tabular_policy2, "policies/XFP10k")
+    #policy_handler.save_tabular_policy(game, tabular_policy2, "policies/XFP100")
+
+    CFR100 = policy_handler.load_tabular_policy("policies/CFR100")
+    XFP100 = policy_handler.load_tabular_policy("policies/XFP100")
+
+    print_algorithm_results(game,CFR100, "CFR100")
+    print_algorithm_results(game, XFP100, "XFP100")
 
 
-    #load enkele policies, "10k" staat voor aantal iteraties getraind
-    CFR10 = policy_handler.load_tabular_policy("policies/CFR10k")
-    CFR100 = policy_handler.load_tabular_policy("policies/CFR100k")
-    #XFP10 = policy_handler.load_tabular_policy("policies/XFP10k")
-
-
-    print("cfr100 vs cfr10")
-    #todo: CFR 10 en 100 zijn bijna identiek, dat is de reden dat dit totaal niet consistent is denk ik?
-    policy_handler.eval_against_policy(game, [CFR100,CFR10], 10000)
-    policy_handler.eval_against_policy(game, [CFR10, CFR100], 10000)
-
-
+    for _ in range(10):
+        print("CFR100 vs XFP100:")
+        policy_handler.eval_against_policy(game, [CFR100, XFP100], 10000)
+        #2de keer omgekeerd om te checken of het wat consistent is
+        print("XFP100 vs CFR100")
+        policy_handler.eval_against_policy(game, [XFP100, CFR100], 10000)
 
 
 
