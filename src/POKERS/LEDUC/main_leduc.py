@@ -38,7 +38,7 @@ def print_algorithm_results(game, policy, algorithm_name):
     print("exploitability = {}".format(policy_exploitability))
 
 def main(_):
-    n = 1;
+    n = 1
     game = pyspiel.load_game("leduc_poker")
     tabular_policy1 = TabularPolicy(game)
     tabular_policy2 = TabularPolicy(game)

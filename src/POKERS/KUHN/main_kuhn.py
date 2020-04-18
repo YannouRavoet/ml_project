@@ -36,7 +36,7 @@ def print_algorithm_results(game, policy, algorithm_name):
 
 
 def main(_):
-    n = 1;
+    n = 1
     game = pyspiel.load_game("kuhn_poker")  # kuhn_poker or leduc_poker
     tabular_policy1 = TabularPolicy(game)
     tabular_policy2 = TabularPolicy(game)
@@ -50,30 +50,30 @@ def main(_):
     print_algorithm_results(game, tabular_policy1, "cfr")
 
 
-    #save policy
-    #policy_saver.save_tabular_policy(game, tabular_policy1, "policies/CFR10k")
+    # save policy
+    # policy_handler.save_tabular_policy(game, tabular_policy1, "policies/CFR1M")
 
-    # XFP
-    xfp_policy = XFP_Solving(game, iterations=n)
-    # order the policy values based on tabular_policy order
-    xfp_policy = {k: xfp_policy.get(k) for k in state_lookup_order}
-    tabular_policy2.action_probability_array = list(list(val) for val in xfp_policy.values())
-    print_algorithm_results(game, tabular_policy2, "xfp")
-
-    #save policy
-    #policy_saver.save_tabular_policy(game, tabular_policy2, "policies/XFP10k")
+    # # XFP
+    # xfp_policy = XFP_Solving(game, iterations=n)
+    # # order the policy values based on tabular_policy order
+    # xfp_policy = {k: xfp_policy.get(k) for k in state_lookup_order}
+    # tabular_policy2.action_probability_array = list(list(val) for val in xfp_policy.values())
+    # print_algorithm_results(game, tabular_policy2, "xfp")
+    #
+    # # save policy
+    # policy_handler.save_tabular_policy(game, tabular_policy2, "policies/XFP1M")
 
 
     #load enkele policies, "10k" staat voor aantal iteraties getraind
-    CFR10 = policy_handler.load_tabular_policy("policies/CFR10k")
+    CFR10 = policy_handler.load_tabular_policy("policies/CFR1M")
     CFR100 = policy_handler.load_tabular_policy("policies/CFR100k")
     #XFP10 = policy_handler.load_tabular_policy("policies/XFP10k")
 
 
     print("cfr100 vs cfr10")
     #todo: CFR 10 en 100 zijn bijna identiek, dat is de reden dat dit totaal niet consistent is denk ik?
-    policy_handler.eval_against_policy(game, [CFR100,CFR10], 10000)
-    policy_handler.eval_against_policy(game, [CFR10, CFR100], 10000)
+    policy_handler.eval_against_policy(game, [tabular_policy1,CFR10], 10000)
+    # policy_handler.eval_against_policy(game, [CFR10, tabular_policy1], 10000) # orde dat je policies meegeeft maakt niet uit (wordt intern
 
 
 
