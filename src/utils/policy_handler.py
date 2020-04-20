@@ -4,7 +4,7 @@ import numpy as np
 from open_spiel.python.policy import TabularPolicy
 
 #module to handle saving and loading (reconstruct) policies to a binary file using pickle
-
+#todo: directory must exist when saving
 def save_to_tabular_policy(game, policy, path):
     # MAKING SURE THE POLICY IS SAVED AND LOADED IN THE SAME ORDER
     tabular_policy = TabularPolicy(game)                                                        #create default policy for the game

@@ -4,6 +4,7 @@ import numpy as np
 import policy_handler
 from open_spiel.python.algorithms.exploitability import exploitability, nash_conv
 from open_spiel.python.policy import PolicyFromCallable
+from open_spiel.python.algorithms import cfr, fictitious_play
 
 import matplotlib.pyplot as plt
 
@@ -93,3 +94,57 @@ def plot_policies(game, algorithms):
     plot_series('Exploitability ifo training iterations', 'Exploitability', exploitabilities)
     plot_series('NashConv ifo training iterations', 'NashConv', nash_convs)
     return
+
+"""TRAINING ALGORITHMS"""
+
+def CFR_Solving(game, iterations, save_every = 0, save_prefix = 'temp'):
+    def save_cfr():
+        policy = cfr_solver.average_policy()
+        policy = dict(zip(policy.state_lookup, policy.action_probability_array))
+        return policy_handler.save_to_tabular_policy(game, policy, "policies/CFR/{}/{}".format(save_prefix, it))
+
+    cfr_solver = cfr.CFRSolver(game)
+    for it in range(iterations+1):  #so that if you tell it to train 20K iterations, the last save isn't 19999
+        cfr_solver.evaluate_and_update_policy()
+        if save_every != 0 and it%save_every == 0: #order is important
+            save_cfr()
+    return save_cfr()
+
+def CFRPlus_Solving(game, iterations, save_every = 0, save_prefix = 'temp'):
+    def save_cfrplus():
+        policy = cfr_solver.average_policy()
+        policy = dict(zip(policy.state_lookup, policy.action_probability_array))
+        return policy_handler.save_to_tabular_policy(game, policy, "policies/CFRPlus/{}/{}".format(save_prefix, it))
+
+    cfr_solver = cfr.CFRPlusSolver(game)
+    for it in range(iterations+1):  #so that if you tell it to train 20K iterations, the last save isn't 19999
+        cfr_solver.evaluate_and_update_policy()
+        if save_every != 0 and it%save_every == 0: #order is important
+            save_cfrplus()
+    return save_cfrplus()
+
+
+def XFP_Solving(game, iterations, save_every = 0, save_prefix = 'temp'):
+    def save_xfp():
+        policy = xfp_solver.average_policy_tables()
+        policy_keys = np.concatenate((list(policy[0].keys()), list(policy[1].keys())), 0)
+        policy_values = np.concatenate((list(map(lambda d: list(d.values()), list(policy[0].values()))),
+                                        list(map(lambda d: list(d.values()), list(policy[1].values())))), 0)
+        #change possible None's into 0
+        policy_values = [(d if d else 0 for d in a) for a in policy_values]
+        policy = dict(zip(policy_keys, policy_values))
+        return policy_handler.save_to_tabular_policy(game, policy, "policies/XFP/{}/{}".format(save_prefix, it))
+    xfp_solver = fictitious_play.XFPSolver(game)
+    for it in range(iterations+1):
+        xfp_solver.iteration()
+        if save_every != 0 and it%save_every == 0: #order is important
+            save_xfp()
+    return save_xfp()
+
+
+def print_algorithm_results(game, policy, algorithm_name):
+    print(algorithm_name.upper())
+    callable_policy = PolicyFromCallable(game, policy)
+    policy_exploitability = exploitability(game, callable_policy)
+    # print(callable_policy._callable_policy.action_probability_array)
+    print("exploitability = {}".format(policy_exploitability))

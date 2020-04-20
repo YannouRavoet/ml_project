@@ -9,8 +9,9 @@
       <sourceFolder url="file://$MODULE_DIR$/src/MATRIXGAMES" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/POKERS" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/utils" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/open_spiel/venv" />
     </content>
-    <orderEntry type="jdk" jdkName="Remote Python 3.6.10 Docker (open_spiel:latest)" jdkType="Python SDK" />
+    <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>

@@ -5,57 +5,11 @@ import utils_poker
 from open_spiel.python.algorithms import cfr, fictitious_play
 import policy_handler
 
-"""TRAINING"""
-def CFR_Solving(game, iterations, save_every = 0, save_prefix = 'temp'):
-    def save_cfr():
-        policy = cfr_solver.average_policy()
-        policy = dict(zip(policy.state_lookup, policy.action_probability_array))
-        return policy_handler.save_to_tabular_policy(game, policy, "policies/CFR/{}/{}".format(save_prefix, it))
-
-    cfr_solver = cfr.CFRSolver(game)
-    for it in range(iterations+1):  #so that if you tell it to train 20K iterations, the last save isn't 19999
-        cfr_solver.evaluate_and_update_policy()
-        if save_every != 0 and it%save_every == 0: #order is important
-            save_cfr()
-    return save_cfr()
-
-def CFRPlus_Solving(game, iterations, save_every = 0, save_prefix = 'temp'):
-    def save_cfrplus():
-        policy = cfr_solver.average_policy()
-        policy = dict(zip(policy.state_lookup, policy.action_probability_array))
-        return policy_handler.save_to_tabular_policy(game, policy, "policies/CFRPlus/{}/{}".format(save_prefix, it))
-
-    cfr_solver = cfr.CFRPlusSolver(game)
-    for it in range(iterations+1):  #so that if you tell it to train 20K iterations, the last save isn't 19999
-        cfr_solver.evaluate_and_update_policy()
-        if save_every != 0 and it%save_every == 0: #order is important
-            save_cfrplus()
-    return save_cfrplus()
-
-
-def XFP_Solving(game, iterations, save_every = 0, save_prefix = 'temp'):
-    def save_xfp():
-        policy = xfp_solver.average_policy_tables()
-        policy_keys = np.concatenate((list(policy[0].keys()), list(policy[1].keys())), 0)
-        policy_values = np.concatenate((list(map(lambda d: [d.get(0), d.get(1)], list(policy[0].values()))),
-                                        list(map(lambda d: [d.get(0), d.get(1)], list(policy[1].values())))), 0)
-        policy = dict(zip(policy_keys, policy_values))
-        return policy_handler.save_to_tabular_policy(game, policy, "policies/XFP/{}/{}".format(save_prefix, it))
-
-    xfp_solver = fictitious_play.XFPSolver(game)
-    for it in range(iterations+1):
-        xfp_solver.iteration()
-        if save_every != 0 and it%save_every == 0: #order is important
-            save_xfp()
-    return save_xfp()
-
 
 def train_policies(game, iterations=0):
-    CFR_Solving(game, iterations=iterations, save_every=1000, save_prefix='temp')
-    XFP_Solving(game, iterations=iterations, save_every=1000, save_prefix='temp')
-    CFRPlus_Solving(game, iterations=iterations, save_every=1000, save_prefix='temp')
-
-
+    utils_poker.CFR_Solving(game, iterations=iterations, save_every=1000, save_prefix='temp')
+    utils_poker.XFP_Solving(game, iterations=iterations, save_every=1000, save_prefix='temp')
+    utils_poker.CFRPlus_Solving(game, iterations=iterations, save_every=1000, save_prefix='temp')
 
 
 def main(_):
@@ -63,7 +17,7 @@ def main(_):
     game = pyspiel.load_game("kuhn_poker")  # kuhn_poker or leduc_poker
 
     # TRAINING
-    train_policies(game, n)
+    train_policies(game, 1)
 
     # TESTING
     utils_poker.plot_policies(game, {'CFR':'CFR/temp/', 'XFP':'XFP/temp/', 'CFR+':'CFRPlus/temp/'})
