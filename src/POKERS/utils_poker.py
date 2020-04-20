@@ -2,7 +2,7 @@ import os
 import sys
 import numpy as np
 import policy_handler
-from open_spiel.python.algorithms.exploitability import exploitability
+from open_spiel.python.algorithms.exploitability import exploitability, nash_conv
 from open_spiel.python.policy import PolicyFromCallable
 
 import matplotlib.pyplot as plt
@@ -39,43 +39,57 @@ def human_format(num):
 
 
 
-def plot_policies(game, prefix):
+def plot_policies(game, algorithms):
     """
     :param game: pyspiel Game class
-    :param prefix: the prefix within the policies directory of the game directory (i.e. CFR/temp/temp_)
+    :param algorithms: {string: string} maps the algorithm name to the prefix within the policies directory of the game directory (i.e. {'CFR': 'CFR/temp/temp_'})
     :return: void
     """
-    # get all the policies
-    files = np.array([])
-
-    for (root, subFolder, filenames) in os.walk('policies'):
-        for file in filenames:
-            path = os.path.join(root, file)
-            if prefix in path:
-                files = np.append(files, path)
-
-    policies = {}
-    for file in files:
-        iterations = (int(file.split('_')[1]))
-        policy = policy_handler.load_to_tabular_policy(file)
-        policies[iterations] = PolicyFromCallable(game, policy)
-
-    #get all the desired metrics
     exploitabilities = {}
-    for key in policies:
-        exploitabilities[key] = exploitability(game, policies[key])
+    nash_convs = {}
+    for algo in algorithms:
+        algo_prefix = algorithms[algo]
 
-    #sort the metrics
-    exploitabilities = sorted(exploitabilities.items())
-    iterations, exploitabilities = zip(*exploitabilities)
+        # get all the files
+        files = np.array([])
+        for (root, subFolder, filenames) in os.walk('policies'):
+            for file in filenames:
+                path = os.path.join(root, file)
+                if algo_prefix in path:
+                    files = np.append(files, path)
+        # get the policy from each file
+        algo_policies = {}
+        for file in files:
+            algo_iterations = (int(file.split(algo_prefix)[1]))
+            algo_policy = policy_handler.load_to_tabular_policy(file)
+            algo_policies[algo_iterations] = PolicyFromCallable(game, algo_policy)
 
-    #plot the metrics
-    plt.plot(iterations, exploitabilities)
-    plt.legend(['exploitability'])
-    plt.title('{} - Metrics ifo training iterations'.format(str(game)))
-    plt.xlabel('number of training iterations')
-    plt.ylabel('metric values')
-    plt.yscale('log')
-    plt.show()
+        #get all the desired metrics of each policy
+        algo_exploitabilities = {}
+        algo_nashconvs = {}
+        for key in algo_policies:
+            algo_exploitabilities[key] = exploitability(game, algo_policies[key])
+            algo_nashconvs[key] = nash_conv(game, algo_policies[key])
+        exploitabilities[algo] = algo_exploitabilities
+        nash_convs[algo] = algo_nashconvs
 
+    # PLOTTING
+    def plot_series(title, metric, series):
+        legend = []
+        for algo in series:
+            algo_series = series[algo]
+            algo_series = sorted(algo_series.items())
+            algo_iterations, algo_series = zip(*algo_series)
+            plt.plot(algo_iterations, algo_series)
+            legend.append(algo)
+
+        plt.title('{} - {}'.format(str(game), title))
+        plt.legend(legend)
+        plt.xlabel('number of training iterations')
+        plt.ylabel(metric)
+        plt.yscale('log')
+        plt.show()
+
+    plot_series('Exploitability ifo training iterations', 'Exploitability', exploitabilities)
+    plot_series('NashConv ifo training iterations', 'NashConv', nash_convs)
     return
