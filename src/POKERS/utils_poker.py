@@ -2,12 +2,14 @@ import os
 import sys
 import numpy as np
 import policy_handler
-from open_spiel.python.algorithms.exploitability import exploitability, nash_conv
-from open_spiel.python.policy import PolicyFromCallable
-from open_spiel.python.algorithms import cfr, fictitious_play
-
+import tensorflow as tf
 import matplotlib.pyplot as plt
 
+from open_spiel.python.algorithms.exploitability import exploitability, nash_conv
+from open_spiel.python import policy
+from open_spiel.python.algorithms import cfr, fictitious_play, policy_gradient, nfsp
+from open_spiel.python import rl_environment
+from open_spiel.python.algorithms import get_all_states
 
 # openspiel.python.examples.tic_tac_toe_qlearner.py
 def command_line_action(time_step):
@@ -18,7 +20,7 @@ def command_line_action(time_step):
     action = -1
     while action not in legal_actions:
         print("You are player {}".format(current_player))
-        print("Infostate: [Pl0, Pl1, J  , Q  , K  , P0p, P0b, P1p, P1b, ..., ...]")
+        print("Infostate: [Pl0, Pl1, J  , Q  , K  , P0p, P0b, P1p, P1b, P0pbp, P0pbb]")
         print(f"Infostate: {info_state}")
         print("Choose an action from {}:".format(legal_actions))
         sys.stdout.flush()
@@ -63,7 +65,7 @@ def plot_policies(game, algorithms):
         for file in files:
             algo_iterations = (int(file.split(algo_prefix)[1]))
             algo_policy = policy_handler.load_to_tabular_policy(file)
-            algo_policies[algo_iterations] = PolicyFromCallable(game, algo_policy)
+            algo_policies[algo_iterations] = policy.PolicyFromCallable(game, algo_policy)
 
         #get all the desired metrics of each policy
         algo_exploitabilities = {}
@@ -95,33 +97,35 @@ def plot_policies(game, algorithms):
     plot_series('NashConv ifo training iterations', 'NashConv', nash_convs)
     return
 
+
+
 """TRAINING ALGORITHMS"""
 
 def CFR_Solving(game, iterations, save_every = 0, save_prefix = 'temp'):
     def save_cfr():
         policy = cfr_solver.average_policy()
         policy = dict(zip(policy.state_lookup, policy.action_probability_array))
-        return policy_handler.save_to_tabular_policy(game, policy, "policies/CFR/{}/{}".format(save_prefix, it))
+        policy_handler.save_to_tabular_policy(game, policy, "policies/CFR/{}/{}".format(save_prefix, it))
 
     cfr_solver = cfr.CFRSolver(game)
     for it in range(iterations+1):  #so that if you tell it to train 20K iterations, the last save isn't 19999
-        cfr_solver.evaluate_and_update_policy()
         if save_every != 0 and it%save_every == 0: #order is important
             save_cfr()
-    return save_cfr()
+        cfr_solver.evaluate_and_update_policy()
+    save_cfr()
 
 def CFRPlus_Solving(game, iterations, save_every = 0, save_prefix = 'temp'):
     def save_cfrplus():
         policy = cfr_solver.average_policy()
         policy = dict(zip(policy.state_lookup, policy.action_probability_array))
-        return policy_handler.save_to_tabular_policy(game, policy, "policies/CFRPlus/{}/{}".format(save_prefix, it))
+        policy_handler.save_to_tabular_policy(game, policy, "policies/CFRPlus/{}/{}".format(save_prefix, it))
 
     cfr_solver = cfr.CFRPlusSolver(game)
     for it in range(iterations+1):  #so that if you tell it to train 20K iterations, the last save isn't 19999
-        cfr_solver.evaluate_and_update_policy()
         if save_every != 0 and it%save_every == 0: #order is important
             save_cfrplus()
-    return save_cfrplus()
+        cfr_solver.evaluate_and_update_policy()
+    save_cfrplus()
 
 
 def XFP_Solving(game, iterations, save_every = 0, save_prefix = 'temp'):
@@ -133,18 +137,151 @@ def XFP_Solving(game, iterations, save_every = 0, save_prefix = 'temp'):
         #change possible None's into 0
         policy_values = [(d if d else 0 for d in a) for a in policy_values]
         policy = dict(zip(policy_keys, policy_values))
-        return policy_handler.save_to_tabular_policy(game, policy, "policies/XFP/{}/{}".format(save_prefix, it))
+        policy_handler.save_to_tabular_policy(game, policy, "policies/XFP/{}/{}".format(save_prefix, it))
+
     xfp_solver = fictitious_play.XFPSolver(game)
     for it in range(iterations+1):
-        xfp_solver.iteration()
         if save_every != 0 and it%save_every == 0: #order is important
             save_xfp()
-    return save_xfp()
+        xfp_solver.iteration()
+    save_xfp()
+
+#kuhn_policy_gradient.py
+def PG_Solving(game, iterations, save_every = 0, save_prefix = 'temp'):
+    class PolicyGradientPolicies(policy.Policy):
+        """Joint policy to be evaluated."""
+        def __init__(self, nfsp_policies):
+            player_ids = [0, 1]
+            super(PolicyGradientPolicies, self).__init__(game, player_ids)
+            self._policies = nfsp_policies
+            self._obs = {"info_state": [None, None], "legal_actions": [None, None]}
+
+        def action_probabilities(self, state, player_id=None):
+            cur_player = state.current_player()
+            legal_actions = state.legal_actions(cur_player)
+
+            self._obs["current_player"] = cur_player
+            self._obs["info_state"][cur_player] = (
+                state.information_state_tensor(cur_player))
+            self._obs["legal_actions"][cur_player] = legal_actions
+
+            info_state = rl_environment.TimeStep(
+                observations=self._obs, rewards=None, discounts=None, step_type=None)
+
+            p = self._policies[cur_player].step(info_state, is_evaluation=True).probs
+            prob_dict = {action: p[action] for action in legal_actions}
+            return prob_dict
+
+    def save_pg():
+        tabular_policy = policy.tabular_policy_from_policy(game, expl_policies_avg)
+        policy_handler.save_tabular_policy(game, tabular_policy, "policies/PG/{}/{}".format(save_prefix, it))
+
+    num_players = 2
+    env = rl_environment.Environment(game, **{"players": num_players})
+    info_state_size = env.observation_spec()["info_state"][0]
+    num_actions = env.action_spec()["num_actions"]
+
+    with tf.Session() as sess:
+        # pylint: disable=g-complex-comprehension
+        agents = [
+            policy_gradient.PolicyGradient(
+                sess,
+                idx,
+                info_state_size,
+                num_actions,
+                loss_str="rpg",         #["rpg", "qpg", "rm"] = PG loss to use.
+                hidden_layers_sizes=(128,)) for idx in range(num_players)
+        ]
+        expl_policies_avg = PolicyGradientPolicies(agents)
+
+        sess.run(tf.global_variables_initializer())
+        for it in range(iterations + 1):
+            if save_every != 0 and it % save_every == 0:  # order is important
+                save_pg()
+
+            time_step = env.reset()
+            while not time_step.last():
+                player_id = time_step.observations["current_player"]
+                agent_output = agents[player_id].step(time_step)
+                action_list = [agent_output.action]
+                time_step = env.step(action_list)
+            # Episode is over, step all agents with final info state.
+            for agent in agents:
+                agent.step(time_step)
+        save_pg()
 
 
-def print_algorithm_results(game, policy, algorithm_name):
-    print(algorithm_name.upper())
-    callable_policy = PolicyFromCallable(game, policy)
-    policy_exploitability = exploitability(game, callable_policy)
-    # print(callable_policy._callable_policy.action_probability_array)
-    print("exploitability = {}".format(policy_exploitability))
+def NFSP_Solving(game, iterations, save_every = 0, save_prefix = 'temp'):
+    class NFSPPolicies(policy.Policy):
+        """Joint policy to be evaluated."""
+        def __init__(self, nfsp_policies, mode):
+            player_ids = [0, 1]
+            super(NFSPPolicies, self).__init__(game, player_ids)
+            self._policies = nfsp_policies
+            self._mode = mode
+            self._obs = {"info_state": [None, None], "legal_actions": [None, None]}
+
+        def action_probabilities(self, state, player_id=None):
+            cur_player = state.current_player()
+            legal_actions = state.legal_actions(cur_player)
+
+            self._obs["current_player"] = cur_player
+            self._obs["info_state"][cur_player] = (
+                state.information_state_tensor(cur_player))
+            self._obs["legal_actions"][cur_player] = legal_actions
+
+            info_state = rl_environment.TimeStep(
+                observations=self._obs, rewards=None, discounts=None, step_type=None)
+
+            with self._policies[cur_player].temp_mode_as(self._mode):
+                p = self._policies[cur_player].step(info_state, is_evaluation=True).probs
+            prob_dict = {action: p[action] for action in legal_actions}
+            return prob_dict
+
+    def save_nfsp():
+        tabular_policy = policy.tabular_policy_from_policy(game, expl_policies_avg)
+        policy_handler.save_tabular_policy(game, tabular_policy, "policies/NFSP/{}/{}".format(save_prefix, it))
+
+    num_players = 2
+    env_configs = {"players": num_players}
+    env = rl_environment.Environment(game, **env_configs)
+    info_state_size = env.observation_spec()["info_state"][0]
+    num_actions = env.action_spec()["num_actions"]
+
+    hidden_layers_sizes = [128]
+    replay_buffer_capacity = int(2e5)
+    reservoir_buffer_capacity = int(2e6)
+    anticipatory_param = 0.1
+
+    hidden_layers_sizes = [int(l) for l in hidden_layers_sizes]
+    kwargs = {
+        "replay_buffer_capacity": replay_buffer_capacity,
+        "epsilon_decay_duration": iterations,
+        "epsilon_start": 0.06,
+        "epsilon_end": 0.001,
+    }
+
+    with tf.Session() as sess:
+        # pylint: disable=g-complex-comprehension
+        agents = [
+            nfsp.NFSP(sess, idx, info_state_size, num_actions, hidden_layers_sizes,
+                      reservoir_buffer_capacity, anticipatory_param,
+                      **kwargs) for idx in range(num_players)
+        ]
+        expl_policies_avg = NFSPPolicies(agents, nfsp.MODE.average_policy)
+
+        sess.run(tf.global_variables_initializer())
+        for it in range(iterations + 1):
+            if save_every != 0 and it % save_every == 0:  # order is important
+                save_nfsp()
+
+            time_step = env.reset()
+            while not time_step.last():
+                player_id = time_step.observations["current_player"]
+                agent_output = agents[player_id].step(time_step)
+                action_list = [agent_output.action]
+                time_step = env.step(action_list)
+            # Episode is over, step all agents with final info state.
+            for agent in agents:
+                agent.step(time_step)
+        save_nfsp()

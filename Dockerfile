@@ -9,7 +9,7 @@ FROM python:3.6-slim-buster
 RUN apt-get update && \
     apt-get upgrade -y && \
       apt-get -y install sudo git curl graphviz libgraphviz-dev
-                                        #graphviz libgraphviz-dev: necessary to plot decision trees
+                                      z#graphviz libgraphviz-dev: necessary to plot decision trees
 
 # Copy requirements of what OpenSpiel depends on, provided by OpenSpiel
 # This requires you to clone the deepmind/open_spiel repo into the ml_project folder
@@ -28,10 +28,9 @@ RUN pip3 install .
 RUN pip3 install nox
 RUN nox -s tests
 
-#used in treeviz.py
-RUN pip3 install pygraphviz
-RUN pip3 install scikit-learn
+# Setup requirements for tournament.py
+WORKDIR /ml_project
+RUN pip3 install -r requirements.txt
 
-# Set WORKDIR as the output of the build
 WORKDIR /ml_project/open_spiel
 ENTRYPOINT ["/bin/bash"]
