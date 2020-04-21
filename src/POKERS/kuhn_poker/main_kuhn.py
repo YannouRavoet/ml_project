@@ -17,7 +17,7 @@ def main(_):
     game = pyspiel.load_game("kuhn_poker")  # kuhn_poker or leduc_poker
 
     # TRAINING
-    train_policies(game, 1)
+    train_policies(game, n)
 
     # TESTING
     utils_poker.plot_policies(game, {'CFR':'CFR/temp/', 'XFP':'XFP/temp/', 'CFR+':'CFRPlus/temp/'})

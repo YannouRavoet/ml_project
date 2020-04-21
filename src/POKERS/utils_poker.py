@@ -3,8 +3,10 @@ import sys
 import numpy as np
 import policy_handler
 from open_spiel.python.algorithms.exploitability import exploitability, nash_conv
-from open_spiel.python.policy import PolicyFromCallable
-from open_spiel.python.algorithms import cfr, fictitious_play
+from open_spiel.python.policy import PolicyFromCallable, tabular_policy_from_policy
+from open_spiel.python.algorithms import cfr, fictitious_play, deep_cfr
+import tensorflow as tf
+import six
 
 import matplotlib.pyplot as plt
 
@@ -148,3 +150,36 @@ def print_algorithm_results(game, policy, algorithm_name):
     policy_exploitability = exploitability(game, callable_policy)
     # print(callable_policy._callable_policy.action_probability_array)
     print("exploitability = {}".format(policy_exploitability))
+
+
+def deep_CFR_Solving(game, num_iters = 400, num_travers = 40, save_every=0,  save_prefix = 'temp',
+                            lr = 1e-3, policy_layers = (32,32), advantage_layers = (16,16)):
+
+    def save_deepcfr():#and print some info i guess?
+        print("---------iteration " + str(it) + "----------")
+        for player, losses in six.iteritems(advantage_losses):
+            print("Advantage for player ", player, losses)
+            print("Advantage Buffer Size for player", player,
+                  len(deep_cfr_solver.advantage_buffers[player]))
+        print("Strategy Buffer Size: ",
+              len(deep_cfr_solver.strategy_buffer))
+        print("policy loss: ", policy_loss)
+        callable_policy = PolicyFromCallable(game, deep_cfr_solver.action_probabilities)
+        tabular_policy = tabular_policy_from_policy(game, callable_policy)
+        policy = dict(zip(tabular_policy.state_lookup, tabular_policy.action_probability_array))
+        # save under map save_prefix as (iter)_(num_travers)
+        return policy_handler.save_to_tabular_policy(game, policy, "policies/deepCFR/{}/{}".format(save_prefix, str(
+            it) + "_" + str(num_travers)))
+
+    with tf.Session() as sess:
+        #set num iters and call solve() multiple times to allow intermediate saving and eval
+        deep_cfr_solver = deep_cfr.DeepCFRSolver(sess, game, policy_network_layers=policy_layers,
+                                                 advantage_network_layers=advantage_layers, num_iterations=1,
+                                                 num_traversals=num_travers, learning_rate=lr)
+        sess.run(tf.global_variables_initializer())
+
+        for it in range(num_iters+1):
+            _, advantage_losses, policy_loss = deep_cfr_solver.solve()
+            if save_every != 0 and it % save_every == 0:
+                save_deepcfr()
+        return save_deepcfr()
