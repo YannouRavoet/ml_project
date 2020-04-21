@@ -1,26 +1,28 @@
 import pyspiel
-import numpy as np
 from absl import app
 import utils_poker
-from open_spiel.python.algorithms import cfr, fictitious_play
 import policy_handler
 
 
 def train_policies(game, iterations=0):
-    utils_poker.CFR_Solving(game, iterations=iterations, save_every=1000, save_prefix='temp')
-    utils_poker.XFP_Solving(game, iterations=iterations, save_every=1000, save_prefix='temp')
-    utils_poker.CFRPlus_Solving(game, iterations=iterations, save_every=1000, save_prefix='temp')
-
+    # utils_poker.CFR_Solving(game, iterations=iterations, save_every=1000, save_prefix='temp')
+    # utils_poker.XFP_Solving(game, iterations=iterations, save_every=1000, save_prefix='temp')
+    # utils_poker.CFRPlus_Solving(game, iterations=iterations, save_every=1000, save_prefix='temp')
+    # utils_poker.PG_Solving(game, iterations=iterations, save_every=10000, save_prefix='temp')
+    # utils_poker.NFSP_Solving(game, iterations=iterations, save_every=10000, save_prefix='temp')
+    return
 
 def main(_):
-    n = int(100e3)
     game = pyspiel.load_game("kuhn_poker")  # kuhn_poker or leduc_poker
 
     # TRAINING
+
+    n = int(3e6)
+
     train_policies(game, n)
 
     # TESTING
-    utils_poker.plot_policies(game, {'CFR':'CFR/temp/', 'XFP':'XFP/temp/', 'CFR+':'CFRPlus/temp/'})
+    utils_poker.plot_policies(game, {'CFR':'CFR/temp/', 'XFP':'XFP/temp/', 'CFR+':'CFRPlus/temp/', 'PG':'PG/temp/', 'NFSP':'NFSP/temp/'})
 
     # #load enkele policies, "10k" staat voor aantal iteraties getraind
     # CFR1e6 = policy_handler.load_to_tabular_policy("policies/CFR1M")

@@ -8,7 +8,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/POKERS/algorithms" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/MATRIXGAMES" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/POKERS" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/utils" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/POKERS/utils" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/open_spiel/venv" />
     </content>
     <orderEntry type="inheritedJdk" />
