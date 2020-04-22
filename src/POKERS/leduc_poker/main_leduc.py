@@ -15,8 +15,12 @@ def main(_):
     tabular_policy2 = TabularPolicy(game)
     state_lookup_order = list(tabular_policy1.state_lookup.keys())
 
+    utils_poker.plot_policies(game, {"deepcfr": "deepCFR/temp/"})
+
+    """"
+
     #deepCFR
-    deepCFR_policy = utils_poker.deep_CFR_Solving(game, 400, 40, 25)
+    deepCFR_policy = utils_poker.deep_CFR_Solving(game, 10000, 40, 25)
     utils_poker.print_algorithm_results(game,deepCFR_policy, "DEEPCFR")
 
 
@@ -46,7 +50,7 @@ def main(_):
     print("XFP100 vs CFR100")
     policy_handler.eval_against_policy(game, [XFP100, CFR100], 10000)
 
-
+"""
 
 
 if __name__ == "__main__":

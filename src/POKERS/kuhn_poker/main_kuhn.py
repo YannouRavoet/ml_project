@@ -10,6 +10,7 @@ def train_policies(game, iterations=0):
     # utils_poker.CFRPlus_Solving(game, iterations=iterations, save_every=1000, save_prefix='temp')
     # utils_poker.PG_Solving(game, iterations=iterations, save_every=10000, save_prefix='temp')
     # utils_poker.NFSP_Solving(game, iterations=iterations, save_every=10000, save_prefix='temp')
+    #utils_poker.deep_CFR_Solving(game, 10000, 40, 100)
     return
 
 def main(_):
@@ -21,8 +22,10 @@ def main(_):
 
     train_policies(game, n)
 
+    utils_poker.plot_policies(game, {"deepcfr": "deepCFR/test100_40/"})
+
     # TESTING
-    utils_poker.plot_policies(game, {'CFR':'CFR/temp/', 'XFP':'XFP/temp/', 'CFR+':'CFRPlus/temp/', 'PG':'PG/temp/', 'NFSP':'NFSP/temp/'})
+    #utils_poker.plot_policies(game, {'CFR':'CFR/temp/', 'XFP':'XFP/temp/', 'CFR+':'CFRPlus/temp/', 'PG':'PG/temp/', 'NFSP':'NFSP/temp/'})
 
     # #load enkele policies, "10k" staat voor aantal iteraties getraind
     # CFR1e6 = policy_handler.load_to_tabular_policy("policies/CFR1M")

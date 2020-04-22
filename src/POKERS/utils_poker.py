@@ -318,9 +318,8 @@ def deep_CFR_Solving(game, num_iters = 400, num_travers = 40, save_every=0,  sav
         callable_policy = PolicyFromCallable(game, deep_cfr_solver.action_probabilities)
         tabular_policy = tabular_policy_from_policy(game, callable_policy)
         policy = dict(zip(tabular_policy.state_lookup, tabular_policy.action_probability_array))
-        # save under map save_prefix as (iter)_(num_travers)
-        return policy_handler.save_to_tabular_policy(game, policy, "policies/deepCFR/{}/{}".format(save_prefix, str(
-            it) + "_" + str(num_travers)))
+        # save under map (save_prefix)_(num_travers)
+        return policy_handler.save_to_tabular_policy(game, policy, "policies/deepCFR/{}/{}".format(save_prefix + "_" + str(num_travers), it))
 
     with tf.Session() as sess:
         #set num iters and call solve() multiple times to allow intermediate saving and eval
@@ -334,3 +333,4 @@ def deep_CFR_Solving(game, num_iters = 400, num_travers = 40, save_every=0,  sav
             if save_every != 0 and it % save_every == 0:
                 save_deepcfr()
         return save_deepcfr()
+
