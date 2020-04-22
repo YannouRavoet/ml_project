@@ -9,7 +9,7 @@ FROM python:3.6-slim-buster
 RUN apt-get update && \
     apt-get upgrade -y && \
       apt-get -y install sudo git curl graphviz libgraphviz-dev
-                                      z#graphviz libgraphviz-dev: necessary to plot decision trees
+                                      #graphviz libgraphviz-dev: necessary to plot decision trees
 
 # Copy requirements of what OpenSpiel depends on, provided by OpenSpiel
 # This requires you to clone the deepmind/open_spiel repo into the ml_project folder
