@@ -2,6 +2,7 @@ import pickle
 import pyspiel
 import numpy as np
 from open_spiel.python.policy import TabularPolicy
+from datetime import datetime
 
 #module to handle saving and loading (reconstruct) policies to a binary file using pickle
 #todo: directory must exist when saving
@@ -19,7 +20,7 @@ def save_tabular_policy(game, tabular_policy, path):
     dict = {'game': game.get_type().short_name, 'action_probability_array': tabular_policy.action_probability_array}
     with open(path, 'wb') as file:
         pickle.dump(dict, file)
-    print("{} saved...".format(path))
+    print("{}: {} saved...".format(datetime.now().strftime("%H:%M:%S"), path))
     return tabular_policy
 
 def load_to_tabular_policy(path):
