@@ -111,7 +111,8 @@ def CFR_Solving(game, iterations, save_every = 0, save_prefix = 'temp', load_fro
         policy = dict(zip(policy.state_lookup, policy.action_probability_array))
         policy_handler.save_to_tabular_policy(game, policy, "policies/CFR/{}/{}".format(save_prefix, it))
 
-    cfr_solver = CFR_Solver_WithInit(game, load_from_policy) if load_from_policy is not None else cfr.CFRSolver(game)
+    cfr_solver = cfr.CFRSolver(game)
+    # cfr_solver = CFR_Solver_WithInit(game, load_from_policy) if load_from_policy is not None else cfr.CFRSolver(game)
 
     for it in range(load_from_policy_iterations, load_from_policy_iterations+iterations+1):  #so that if you tell it to train 20K iterations, the last save isn't 19999
         if save_every != 0 and it%save_every == 0: #order is important
@@ -131,12 +132,9 @@ def CFRPlus_Solving(game, iterations, save_every = 0, save_prefix = 'temp', load
     def save_cfrplus():
         avg_policy = cfr_solver.average_policy()
         avg_policy = dict(zip(avg_policy.state_lookup, avg_policy.action_probability_array))
-        policy_handler.save_to_tabular_policy(game, avg_policy, "policies/CFRPlus/{}/avg/{}".format(save_prefix, it))
-        cur_pol = cfr_solver.current_policy()
-        cur_pol = dict(zip(cur_pol.state_lookup, cur_pol.action_probability_array))
-        policy_handler.save_to_tabular_policy(game, cur_pol, "policies/CFRPlus/{}/cur/{}".format(save_prefix, it))
+        policy_handler.save_to_tabular_policy(game, avg_policy, "policies/CFRPlus/{}/{}".format(save_prefix, it))
 
-    cfr_solver = CFRPlus_Solver_WithInit(game) if load_avg_policy is not None else cfr.CFRPlusSolver(game)
+    cfr_solver = cfr.CFRPlusSolver(game)
     for it in range(load__iterations, load__iterations+iterations+1):  #so that if you tell it to train 20K iterations, the last save isn't 19999
         if save_every != 0 and it%save_every == 0: #order is important
             save_cfrplus()
