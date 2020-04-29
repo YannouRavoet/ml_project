@@ -42,7 +42,7 @@ def command_line_action(time_step):
 def plot_policies(game, algorithms):
     """
     :param game: pyspiel Game class
-    :param algorithms: {string: string} maps the algorithm name to the prefix within the policies directory of the game directory (i.e. {'CFR': 'CFR/temp/temp_'})
+    :param algorithms: {string: string} maps the algorithm name to the prefix within the policies directory of the game directory (i.e. {'CFR': 'CFR/temp/'})
     :return: void
     """
     exploitabilities = {}
@@ -51,6 +51,7 @@ def plot_policies(game, algorithms):
         algo_prefix = algorithms[algo]
 
         # get all the files
+        print("Getting the files for {} from {}...".format(algo, algo_prefix))
         files = np.array([])
         for (root, subFolder, filenames) in os.walk('policies'):
             for file in filenames:
@@ -58,13 +59,15 @@ def plot_policies(game, algorithms):
                 if algo_prefix in path:
                     files = np.append(files, path)
         # get the policy from each file
+        print("Extracting the policies from the files...")
         algo_policies = {}
         for file in files:
             algo_iterations = (int(file.split(algo_prefix)[1]))
             algo_policy = policy_handler.load_to_tabular_policy(file)
             algo_policies[algo_iterations] = policy.PolicyFromCallable(game, algo_policy)
 
-        #get all the desired metrics of each policy
+        #get all the desired metrics of each policy: this step can take a while
+        print("Extracting metrics for {}...".format(algo))
         algo_exploitabilities = {}
         algo_nashconvs = {}
         for key in algo_policies:
@@ -74,6 +77,7 @@ def plot_policies(game, algorithms):
         nash_convs[algo] = algo_nashconvs
 
     # PLOTTING
+    print("Plotting metrics for all passed algorithms...")
     def plot_series(title, metric, series):
         legend = []
         for algo in series:
@@ -341,16 +345,8 @@ def NFSP_Solving(game, iterations, save_every = 0, save_prefix = 'temp'):
         save_nfsp()
 
 
-def print_algorithm_results(game, policy, algorithm_name):
-    print(algorithm_name.upper())
-    callable_policy = PolicyFromCallable(game, policy)
-    policy_exploitability = exploitability(game, callable_policy)
-    # print(callable_policy._callable_policy.action_probability_array)
-    print("exploitability = {}".format(policy_exploitability))
-
-
-def deep_CFR_Solving(game, num_iters = 400, num_travers = 40, save_every=0,  save_prefix = 'temp',
-                            lr = 1e-3, policy_layers = (32,32), advantage_layers = (16,16)):
+def deep_CFR_Solving(game, iterations, save_every=0, save_prefix ='temp', num_travers = 40,
+                     lr = 1e-3, policy_layers = (32,32), advantage_layers = (16,16)):
 
     def save_deepcfr():#and print some info i guess?
         print("---------iteration " + str(it) + "----------")
@@ -374,11 +370,12 @@ def deep_CFR_Solving(game, num_iters = 400, num_travers = 40, save_every=0,  sav
                                                  num_traversals=num_travers, learning_rate=lr)
         sess.run(tf.global_variables_initializer())
 
-        for it in range(num_iters+1):
+        for it in range(iterations + 1):
             _, advantage_losses, policy_loss = deep_cfr_solver.solve()
             if save_every != 0 and it % save_every == 0:
                 save_deepcfr()
         return save_deepcfr()
+
 
 #round policy, can decrease exploitability
 def round_tabular_policy_probabilties(policy):
