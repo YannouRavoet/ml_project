@@ -1,15 +1,17 @@
 import os
 import sys
+import six
 import numpy as np
 import policy_handler
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
+
+from open_spiel.python.policy import PolicyFromCallable, tabular_policy_from_policy
 from open_spiel.python.algorithms.exploitability import exploitability, nash_conv
 from open_spiel.python import policy
-from open_spiel.python.algorithms import cfr, fictitious_play, policy_gradient, nfsp
+from open_spiel.python.algorithms import cfr, fictitious_play, policy_gradient, nfsp, discounted_cfr, deep_cfr, cfr_br
 from open_spiel.python import rl_environment
-from open_spiel.python.algorithms import get_all_states
 
 # openspiel.python.examples.tic_tac_toe_qlearner.py
 def command_line_action(time_step):
@@ -31,10 +33,12 @@ def command_line_action(time_step):
             continue
     return action
 
+
+""" PLOTTING """
 def plot_policies(game, algorithms):
     """
     :param game: pyspiel Game class
-    :param algorithms: {string: string} maps the algorithm name to the prefix within the policies directory of the game directory (i.e. {'CFR': 'CFR/temp/temp_'})
+    :param algorithms: {string: string} maps the algorithm name to the prefix within the policies directory of the game directory (i.e. {'CFR': 'CFR/temp/'})
     :return: void
     """
     exploitabilities = {}
@@ -43,6 +47,7 @@ def plot_policies(game, algorithms):
         algo_prefix = algorithms[algo]
 
         # get all the files
+        print("Getting the files for {} from {}...".format(algo, algo_prefix))
         files = np.array([])
         for (root, subFolder, filenames) in os.walk('policies'):
             for file in filenames:
@@ -50,13 +55,15 @@ def plot_policies(game, algorithms):
                 if algo_prefix in path:
                     files = np.append(files, path)
         # get the policy from each file
+        print("Extracting the policies from the files...")
         algo_policies = {}
         for file in files:
             algo_iterations = (int(file.split(algo_prefix)[1]))
             algo_policy = policy_handler.load_to_tabular_policy(file)
             algo_policies[algo_iterations] = policy.PolicyFromCallable(game, algo_policy)
 
-        #get all the desired metrics of each policy
+        #get all the desired metrics of each policy: this step can take a while
+        print("Extracting metrics for {}...".format(algo))
         algo_exploitabilities = {}
         algo_nashconvs = {}
         for key in algo_policies:
@@ -66,6 +73,7 @@ def plot_policies(game, algorithms):
         nash_convs[algo] = algo_nashconvs
 
     # PLOTTING
+    print("Plotting metrics for all passed algorithms...")
     def plot_series(title, metric, series):
         legend = []
         for algo in series:
@@ -86,9 +94,14 @@ def plot_policies(game, algorithms):
     plot_series('NashConv ifo training iterations', 'NashConv', nash_convs)
     return
 
+def print_algorithm_results(game, policy, algorithm_name):
+    print(algorithm_name.upper())
+    callable_policy = PolicyFromCallable(game, policy)
+    policy_exploitability = exploitability(game, callable_policy)
+    # print(callable_policy._callable_policy.action_probability_array)
+    print("exploitability = {}".format(policy_exploitability))
 
-
-"""TRAINING ALGORITHMS"""
+""" TRAINING ALGORITHMS """
 
 def CFR_Solving(game, iterations, save_every = 0, save_prefix = 'temp', load_from_policy=None, load_from_policy_iterations = 0):
     class CFR_Solver_WithInit(cfr.CFRSolver):
@@ -111,6 +124,46 @@ def CFR_Solving(game, iterations, save_every = 0, save_prefix = 'temp', load_fro
             save_cfr()
         cfr_solver.evaluate_and_update_policy()
     save_cfr()
+
+def DCFR_Solving(game, iterations, a=3/2,b=0,g=2, save_every = 0, save_prefix = 'temp', load_from_policy=None, load_from_policy_iterations = 0):
+
+    def save_dcfr():
+        policy = dcfr_solver.average_policy()
+        policy = dict(zip(policy.state_lookup, policy.action_probability_array))
+        policy_handler.save_to_tabular_policy(game, policy, "policies/DCFR/{}/{}".format(save_prefix, it))
+
+    dcfr_solver = discounted_cfr.DCFRSolver(game, alpha=a, beta=b,gamma=g)
+    # cfr_solver = CFR_Solver_WithInit(game, load_from_policy) if load_from_policy is not None else cfr.CFRSolver(game)
+
+    for it in range(load_from_policy_iterations, load_from_policy_iterations+iterations+1):  #so that if you tell it to train 20K iterations, the last save isn't 19999
+        if save_every != 0 and it%save_every == 0: #order is important
+            save_dcfr()
+        dcfr_solver.evaluate_and_update_policy()
+    save_dcfr()
+
+
+def CFR_BR_Solving(game, iterations, save_every = 0, save_prefix = 'temp', load_from_policy=None, load_from_policy_iterations = 0):
+    class CFR_Solver_WithInit(cfr_br.CFRBRSolver):
+        def __init__(self, game, current_policy):
+            super(CFR_Solver_WithInit, self).__init__(game)
+            self._current_policy = current_policy
+            self._average_policy = self._current_policy.__copy__()
+            self._initialize_info_state_nodes(self._root_node)
+
+    def save_cfr_br():
+        policy = cfr_solver.average_policy()
+        policy = dict(zip(policy.state_lookup, policy.action_probability_array))
+        policy_handler.save_to_tabular_policy(game, policy, "policies/CFRBR/{}/{}".format(save_prefix, it))
+
+    cfr_solver = cfr_br.CFRBRSolver(game)
+    # cfr_solver = CFR_Solver_WithInit(game, load_from_policy) if load_from_policy is not None else cfr.CFRSolver(game)
+
+    for it in range(load_from_policy_iterations, load_from_policy_iterations+iterations+1):  #so that if you tell it to train 20K iterations, the last save isn't 19999
+        if save_every != 0 and it%save_every == 0: #order is important
+            save_cfr_br()
+        cfr_solver.evaluate_and_update_policy()
+    save_cfr_br()
+
 
 def CFRPlus_Solving(game, iterations, save_every = 0, save_prefix = 'temp', load_avg_policy = None, load_cur_policy = None, load__iterations=0):
     class CFRPlus_Solver_WithInit(cfr.CFRPlusSolver):
@@ -291,3 +344,52 @@ def NFSP_Solving(game, iterations, save_every = 0, save_prefix = 'temp'):
             for agent in agents:
                 agent.step(time_step)
         save_nfsp()
+
+
+def DEEPCFR_Solving(game, iterations, save_every=0, save_prefix ='temp', num_travers = 40,
+                    lr = 1e-3, policy_layers = (32,32), advantage_layers = (16,16)):
+
+    def save_deepcfr():#and print some info i guess?
+        print("---------iteration " + str(it) + "----------")
+        for player, losses in six.iteritems(advantage_losses):
+            print("Advantage for player ", player, losses)
+            print("Advantage Buffer Size for player", player,
+                  len(deep_cfr_solver.advantage_buffers[player]))
+        print("Strategy Buffer Size: ",
+              len(deep_cfr_solver.strategy_buffer))
+        print("policy loss: ", policy_loss)
+        callable_policy = PolicyFromCallable(game, deep_cfr_solver.action_probabilities)
+        tabular_policy = tabular_policy_from_policy(game, callable_policy)
+        policy = dict(zip(tabular_policy.state_lookup, tabular_policy.action_probability_array))
+        # save under map (save_prefix)_(num_travers)
+        return policy_handler.save_to_tabular_policy(game, policy, "policies/deepCFR/{}/{}".format(save_prefix + "_" + str(num_travers), it))
+
+    with tf.Session() as sess:
+        #set num iters and call solve() multiple times to allow intermediate saving and eval
+        deep_cfr_solver = deep_cfr.DeepCFRSolver(sess, game, policy_network_layers=policy_layers,
+                                                 advantage_network_layers=advantage_layers, num_iterations=1,
+                                                 num_traversals=num_travers, learning_rate=lr)
+        sess.run(tf.global_variables_initializer())
+
+        for it in range(iterations + 1):
+            _, advantage_losses, policy_loss = deep_cfr_solver.solve()
+            if save_every != 0 and it % save_every == 0:
+                save_deepcfr()
+        return save_deepcfr()
+
+""" ADAPTING POLICIES """
+# round policy, can decrease exploitability
+def round_tabular_policy_probabilties(policy):
+    arr = policy.action_probability_array
+    for actions in arr:
+        for j,action in enumerate(actions):
+            if action > 0.999:
+                actions[j] = 1
+            if action < 0.001:
+                actions[j] = 0
+            if 0.667 > action > 0.665:
+                actions[j] = 2 / 3
+            if 0.334 > action > 0.332:
+                actions[j] = 1 / 3
+    policy.action_probability_array = arr
+    return policy

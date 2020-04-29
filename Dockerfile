@@ -18,15 +18,15 @@ ADD . /ml_project
 WORKDIR /ml_project/open_spiel
 
 # Turn off apt-get interactions during installation
-RUN sed -i -e 's/apt-get install/apt-get install -y/g' ./install.sh
+# 23/04/2020: With one of the latest updates of open_spiel the install.sh script redirects to ../open_spiel/scripts/install.sh
+RUN sed -i -e 's/apt-get install/apt-get install -y/g' ./open_spiel/scripts/install.sh
 RUN ./install.sh
 RUN pip3 install --upgrade pip
 RUN pip3 install --upgrade setuptools testresources
 
 #install OpenSpiel and run tests
 RUN pip3 install .
-RUN pip3 install nox
-RUN nox -s tests
+RUN ./open_spiel/scripts/build_and_run_tests.sh
 
 # Setup requirements for tournament.py
 WORKDIR /ml_project

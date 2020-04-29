@@ -4,5 +4,8 @@
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/ML_project20" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/open_spiel" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/open_spiel/open_spiel/abseil-cpp" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/open_spiel/open_spiel/games/bridge/double_dummy_solver" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/open_spiel/pybind11" vcs="Git" />
   </component>
 </project>

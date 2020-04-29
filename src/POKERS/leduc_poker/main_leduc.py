@@ -17,10 +17,10 @@ def main(_):
 
     # TRAINING
     n = int(1e7)
-    train_policies(game, n)
+    #train_policies(game, n)
 
     # TESTING
-    # utils_poker.plot_policies(game, {'CFR': 'CFR/temp/', 'XFP': 'XFP/temp/', 'CFR+': 'CFRPlus/temp/', 'PG': 'PG/temp/', 'NFSP': 'NFSP/temp/'})
+    utils_poker.plot_policies(game, {'CFR': 'CFR/temp/', 'CFR+': 'CFRPlus/temp/'})
 
     # #load enkele policies, "10k" staat voor aantal iteraties getraind
     # CFR1e6 = policy_handler.load_to_tabular_policy("policies/CFR1M")
@@ -31,7 +31,6 @@ def main(_):
     # print("cfr100K vs cfr1M")
     # policy_handler.eval_against_policy(game, [CFR1e5,CFR1e6], 10000)
     # # policy_handler.eval_against_policy(game, [CFR10, tabular_policy1], 10000) # orde dat je policies meegeeft maakt niet uit (wordt intern verhandelt)
-
 
 
 
