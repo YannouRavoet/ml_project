@@ -29,13 +29,13 @@ def main(_):
 
 
     #rounding example!
-    d480 = policy_handler.load_to_tabular_policy("policies/DCFR/temp/480000")
-    utils_poker.print_algorithm_results(game,d480,"DCFR480k")
-    print(d480.action_probability_array)
+    #d480 = policy_handler.load_to_tabular_policy("policies/DCFR/temp/480000")
+    #utils_poker.print_algorithm_results(game,d480,"DCFR480k")
+    #print(d480.action_probability_array)
 
-    utils_poker.round_tabular_policy_probabilties(d480)
-    utils_poker.print_algorithm_results(game, d480, "DCFR480k after rounding")
-    print(d480.action_probability_array)
+    #utils_poker.round_tabular_policy_probabilties(d480)
+    #utils_poker.print_algorithm_results(game, d480, "DCFR480k after rounding")
+    #print(d480.action_probability_array)
 
     # TRAINING
 
@@ -43,7 +43,8 @@ def main(_):
 
     #train_policies(game, n)
 
-    #utils_poker.plot_policies(game, {"DCFR": "DCFR/temp/"})
+
+    #utils_poker.plot_policies(game, {"DCFR": "DCFR/temp/", "CFR+": "CFRPlus/temp/"})
 
     # TESTING
 

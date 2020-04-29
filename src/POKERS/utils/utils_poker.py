@@ -68,7 +68,7 @@ def plot_policies(game, algorithms):
         algo_exploitabilities = {}
         algo_nashconvs = {}
         for key in algo_policies:
-            algo_exploitabilities[key] = exploitability(game, algo_policies[key])
+            algo_exploitabilities[key] = exploitability(game,algo_policies[key])
             algo_nashconvs[key] = nash_conv(game, algo_policies[key])
         exploitabilities[algo] = algo_exploitabilities
         nash_convs[algo] = algo_nashconvs
@@ -381,17 +381,12 @@ def deep_CFR_Solving(game, num_iters = 400, num_travers = 40, save_every=0,  sav
         return save_deepcfr()
 
 #round policy, can decrease exploitability
-def round_tabular_policy_probabilties(policy):
+def round_tabular_policy_probabilties(policy, vals = [1,0,1/3, 2/3], th = 0.001):
     arr = policy.action_probability_array
     for actions in arr:
         for j,action in enumerate(actions):
-            if action > 0.999:
-                actions[j] = 1
-            if action < 0.001:
-                actions[j] = 0
-            if 0.667 > action > 0.665:
-                actions[j] = 2 / 3
-            if 0.334 > action > 0.332:
-                actions[j] = 1 / 3
+            for val in vals:
+                if abs(action - val) < th:
+                    actions[j] = val
     policy.action_probability_array = arr
     return policy
