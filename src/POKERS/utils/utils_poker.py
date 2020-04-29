@@ -5,7 +5,7 @@ import policy_handler
 
 from open_spiel.python.algorithms.exploitability import exploitability, nash_conv
 from open_spiel.python.policy import PolicyFromCallable, tabular_policy_from_policy
-from open_spiel.python.algorithms import cfr, fictitious_play, deep_cfr
+from open_spiel.python.algorithms import cfr, fictitious_play, deep_cfr, cfr_br
 import tensorflow as tf
 import six
 
@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 from open_spiel.python.algorithms.exploitability import exploitability, nash_conv
 from open_spiel.python import policy
-from open_spiel.python.algorithms import cfr, fictitious_play, policy_gradient, nfsp
+from open_spiel.python.algorithms import cfr, fictitious_play, policy_gradient, nfsp, discounted_cfr
 from open_spiel.python import rl_environment
 from open_spiel.python.algorithms import get_all_states
 
@@ -119,6 +119,46 @@ def CFR_Solving(game, iterations, save_every = 0, save_prefix = 'temp', load_fro
             save_cfr()
         cfr_solver.evaluate_and_update_policy()
     save_cfr()
+
+def DCFR_Solving(game, iterations, a=3/2,b=0,g=2, save_every = 0, save_prefix = 'temp', load_from_policy=None, load_from_policy_iterations = 0):
+
+    def save_dcfr():
+        policy = dcfr_solver.average_policy()
+        policy = dict(zip(policy.state_lookup, policy.action_probability_array))
+        policy_handler.save_to_tabular_policy(game, policy, "policies/DCFR/{}/{}".format(save_prefix, it))
+
+    dcfr_solver = discounted_cfr.DCFRSolver(game, alpha=a, beta=b,gamma=g)
+    # cfr_solver = CFR_Solver_WithInit(game, load_from_policy) if load_from_policy is not None else cfr.CFRSolver(game)
+
+    for it in range(load_from_policy_iterations, load_from_policy_iterations+iterations+1):  #so that if you tell it to train 20K iterations, the last save isn't 19999
+        if save_every != 0 and it%save_every == 0: #order is important
+            save_dcfr()
+        dcfr_solver.evaluate_and_update_policy()
+    save_dcfr()
+
+
+def CFR_BR_Solving(game, iterations, save_every = 0, save_prefix = 'temp', load_from_policy=None, load_from_policy_iterations = 0):
+    class CFR_Solver_WithInit(cfr_br.CFRBRSolver):
+        def __init__(self, game, current_policy):
+            super(CFR_Solver_WithInit, self).__init__(game)
+            self._current_policy = current_policy
+            self._average_policy = self._current_policy.__copy__()
+            self._initialize_info_state_nodes(self._root_node)
+
+    def save_cfr_br():
+        policy = cfr_solver.average_policy()
+        policy = dict(zip(policy.state_lookup, policy.action_probability_array))
+        policy_handler.save_to_tabular_policy(game, policy, "policies/CFRBR/{}/{}".format(save_prefix, it))
+
+    cfr_solver = cfr_br.CFRBRSolver(game)
+    # cfr_solver = CFR_Solver_WithInit(game, load_from_policy) if load_from_policy is not None else cfr.CFRSolver(game)
+
+    for it in range(load_from_policy_iterations, load_from_policy_iterations+iterations+1):  #so that if you tell it to train 20K iterations, the last save isn't 19999
+        if save_every != 0 and it%save_every == 0: #order is important
+            save_cfr_br()
+        cfr_solver.evaluate_and_update_policy()
+    save_cfr_br()
+
 
 def CFRPlus_Solving(game, iterations, save_every = 0, save_prefix = 'temp', load_avg_policy = None, load_cur_policy = None, load__iterations=0):
     class CFRPlus_Solver_WithInit(cfr.CFRPlusSolver):
@@ -340,3 +380,18 @@ def deep_CFR_Solving(game, num_iters = 400, num_travers = 40, save_every=0,  sav
                 save_deepcfr()
         return save_deepcfr()
 
+#round policy, can decrease exploitability
+def round_tabular_policy_probabilties(policy):
+    arr = policy.action_probability_array
+    for actions in arr:
+        for j,action in enumerate(actions):
+            if action > 0.999:
+                actions[j] = 1
+            if action < 0.001:
+                actions[j] = 0
+            if 0.667 > action > 0.665:
+                actions[j] = 2 / 3
+            if 0.334 > action > 0.332:
+                actions[j] = 1 / 3
+    policy.action_probability_array = arr
+    return policy
