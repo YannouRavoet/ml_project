@@ -1,23 +1,17 @@
 import os
 import sys
+import six
 import numpy as np
 import policy_handler
-
-from open_spiel.python.algorithms.exploitability import exploitability, nash_conv
-from open_spiel.python.policy import PolicyFromCallable, tabular_policy_from_policy
-from open_spiel.python.algorithms import cfr, fictitious_play, deep_cfr, cfr_br
 import tensorflow as tf
-import six
-
-import tensorflow as tf
-
 import matplotlib.pyplot as plt
 
+
+from open_spiel.python.policy import PolicyFromCallable, tabular_policy_from_policy
 from open_spiel.python.algorithms.exploitability import exploitability, nash_conv
 from open_spiel.python import policy
-from open_spiel.python.algorithms import cfr, fictitious_play, policy_gradient, nfsp, discounted_cfr
+from open_spiel.python.algorithms import cfr, fictitious_play, policy_gradient, nfsp, discounted_cfr, deep_cfr, cfr_br
 from open_spiel.python import rl_environment
-from open_spiel.python.algorithms import get_all_states
 
 # openspiel.python.examples.tic_tac_toe_qlearner.py
 def command_line_action(time_step):
@@ -39,6 +33,8 @@ def command_line_action(time_step):
             continue
     return action
 
+
+""" PLOTTING """
 def plot_policies(game, algorithms):
     """
     :param game: pyspiel Game class
@@ -98,9 +94,14 @@ def plot_policies(game, algorithms):
     plot_series('NashConv ifo training iterations', 'NashConv', nash_convs)
     return
 
+def print_algorithm_results(game, policy, algorithm_name):
+    print(algorithm_name.upper())
+    callable_policy = PolicyFromCallable(game, policy)
+    policy_exploitability = exploitability(game, callable_policy)
+    # print(callable_policy._callable_policy.action_probability_array)
+    print("exploitability = {}".format(policy_exploitability))
 
-
-"""TRAINING ALGORITHMS"""
+""" TRAINING ALGORITHMS """
 
 def CFR_Solving(game, iterations, save_every = 0, save_prefix = 'temp', load_from_policy=None, load_from_policy_iterations = 0):
     class CFR_Solver_WithInit(cfr.CFRSolver):
@@ -345,8 +346,8 @@ def NFSP_Solving(game, iterations, save_every = 0, save_prefix = 'temp'):
         save_nfsp()
 
 
-def deep_CFR_Solving(game, iterations, save_every=0, save_prefix ='temp', num_travers = 40,
-                     lr = 1e-3, policy_layers = (32,32), advantage_layers = (16,16)):
+def DEEPCFR_Solving(game, iterations, save_every=0, save_prefix ='temp', num_travers = 40,
+                    lr = 1e-3, policy_layers = (32,32), advantage_layers = (16,16)):
 
     def save_deepcfr():#and print some info i guess?
         print("---------iteration " + str(it) + "----------")
@@ -376,8 +377,8 @@ def deep_CFR_Solving(game, iterations, save_every=0, save_prefix ='temp', num_tr
                 save_deepcfr()
         return save_deepcfr()
 
-
-#round policy, can decrease exploitability
+""" ADAPTING POLICIES """
+# round policy, can decrease exploitability
 def round_tabular_policy_probabilties(policy):
     arr = policy.action_probability_array
     for actions in arr:
