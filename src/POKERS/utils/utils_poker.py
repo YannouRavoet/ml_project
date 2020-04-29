@@ -6,12 +6,12 @@ import policy_handler
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
-
 from open_spiel.python.policy import PolicyFromCallable, tabular_policy_from_policy
 from open_spiel.python.algorithms.exploitability import exploitability, nash_conv
 from open_spiel.python import policy
 from open_spiel.python.algorithms import cfr, fictitious_play, policy_gradient, nfsp, discounted_cfr, deep_cfr, cfr_br
 from open_spiel.python import rl_environment
+
 
 # openspiel.python.examples.tic_tac_toe_qlearner.py
 def command_line_action(time_step):
@@ -35,6 +35,8 @@ def command_line_action(time_step):
 
 
 """ PLOTTING """
+
+
 def plot_policies(game, algorithms):
     """
     :param game: pyspiel Game class
@@ -62,7 +64,7 @@ def plot_policies(game, algorithms):
             algo_policy = policy_handler.load_to_tabular_policy(file)
             algo_policies[algo_iterations] = policy.PolicyFromCallable(game, algo_policy)
 
-        #get all the desired metrics of each policy: this step can take a while
+        # get all the desired metrics of each policy: this step can take a while
         print("Extracting metrics for {}...".format(algo))
         algo_exploitabilities = {}
         algo_nashconvs = {}
@@ -74,6 +76,7 @@ def plot_policies(game, algorithms):
 
     # PLOTTING
     print("Plotting metrics for all passed algorithms...")
+
     def plot_series(title, metric, series):
         legend = []
         for algo in series:
@@ -94,6 +97,7 @@ def plot_policies(game, algorithms):
     plot_series('NashConv ifo training iterations', 'NashConv', nash_convs)
     return
 
+
 def print_algorithm_results(game, policy, algorithm_name):
     print(algorithm_name.upper())
     callable_policy = PolicyFromCallable(game, policy)
@@ -101,114 +105,90 @@ def print_algorithm_results(game, policy, algorithm_name):
     # print(callable_policy._callable_policy.action_probability_array)
     print("exploitability = {}".format(policy_exploitability))
 
+
 """ TRAINING ALGORITHMS """
 
-def CFR_Solving(game, iterations, save_every = 0, save_prefix = 'temp', load_from_policy=None, load_from_policy_iterations = 0):
-    class CFR_Solver_WithInit(cfr.CFRSolver):
-        def __init__(self, game, current_policy):
-            super(CFR_Solver_WithInit, self).__init__(game)
-            self._current_policy = current_policy
-            self._average_policy = self._current_policy.__copy__()
-            self._initialize_info_state_nodes(self._root_node)
 
+def CFR_Solving(game, iterations, save_every=0, save_prefix='temp'):
     def save_cfr():
         policy = cfr_solver.average_policy()
         policy = dict(zip(policy.state_lookup, policy.action_probability_array))
         policy_handler.save_to_tabular_policy(game, policy, "policies/CFR/{}/{}".format(save_prefix, it))
 
     cfr_solver = cfr.CFRSolver(game)
-    # cfr_solver = CFR_Solver_WithInit(game, load_from_policy) if load_from_policy is not None else cfr.CFRSolver(game)
-
-    for it in range(load_from_policy_iterations, load_from_policy_iterations+iterations+1):  #so that if you tell it to train 20K iterations, the last save isn't 19999
-        if save_every != 0 and it%save_every == 0: #order is important
+    for it in range(iterations + 1):  # so that if you tell it to train 20K iterations, the last save isn't 19999
+        if save_every != 0 and it % save_every == 0:  # order is important
             save_cfr()
         cfr_solver.evaluate_and_update_policy()
     save_cfr()
 
-def DCFR_Solving(game, iterations, a=3/2,b=0,g=2, save_every = 0, save_prefix = 'temp', load_from_policy=None, load_from_policy_iterations = 0):
 
+def DCFR_Solving(game, iterations, save_every=0, save_prefix='temp', a=3 / 2, b=0, g=2):
     def save_dcfr():
         policy = dcfr_solver.average_policy()
         policy = dict(zip(policy.state_lookup, policy.action_probability_array))
         policy_handler.save_to_tabular_policy(game, policy, "policies/DCFR/{}/{}".format(save_prefix, it))
 
-    dcfr_solver = discounted_cfr.DCFRSolver(game, alpha=a, beta=b,gamma=g)
-    # cfr_solver = CFR_Solver_WithInit(game, load_from_policy) if load_from_policy is not None else cfr.CFRSolver(game)
-
-    for it in range(load_from_policy_iterations, load_from_policy_iterations+iterations+1):  #so that if you tell it to train 20K iterations, the last save isn't 19999
-        if save_every != 0 and it%save_every == 0: #order is important
+    dcfr_solver = discounted_cfr.DCFRSolver(game, alpha=a, beta=b, gamma=g)
+    for it in range(iterations + 1):  # so that if you tell it to train 20K iterations, the last save isn't 19999
+        if save_every != 0 and it % save_every == 0:  # order is important
             save_dcfr()
         dcfr_solver.evaluate_and_update_policy()
     save_dcfr()
 
 
-def CFR_BR_Solving(game, iterations, save_every = 0, save_prefix = 'temp', load_from_policy=None, load_from_policy_iterations = 0):
-    class CFR_Solver_WithInit(cfr_br.CFRBRSolver):
-        def __init__(self, game, current_policy):
-            super(CFR_Solver_WithInit, self).__init__(game)
-            self._current_policy = current_policy
-            self._average_policy = self._current_policy.__copy__()
-            self._initialize_info_state_nodes(self._root_node)
-
+def CFR_BR_Solving(game, iterations, save_every=0, save_prefix='temp'):
     def save_cfr_br():
         policy = cfr_solver.average_policy()
         policy = dict(zip(policy.state_lookup, policy.action_probability_array))
         policy_handler.save_to_tabular_policy(game, policy, "policies/CFRBR/{}/{}".format(save_prefix, it))
 
     cfr_solver = cfr_br.CFRBRSolver(game)
-    # cfr_solver = CFR_Solver_WithInit(game, load_from_policy) if load_from_policy is not None else cfr.CFRSolver(game)
-
-    for it in range(load_from_policy_iterations, load_from_policy_iterations+iterations+1):  #so that if you tell it to train 20K iterations, the last save isn't 19999
-        if save_every != 0 and it%save_every == 0: #order is important
+    for it in range(iterations + 1):  # so that if you tell it to train 20K iterations, the last save isn't 19999
+        if save_every != 0 and it % save_every == 0:  # order is important
             save_cfr_br()
         cfr_solver.evaluate_and_update_policy()
     save_cfr_br()
 
 
-def CFRPlus_Solving(game, iterations, save_every = 0, save_prefix = 'temp', load_avg_policy = None, load_cur_policy = None, load__iterations=0):
-    class CFRPlus_Solver_WithInit(cfr.CFRPlusSolver):
-        def __init__(self, game):
-            super(CFRPlus_Solver_WithInit, self).__init__(game)
-            self._current_policy = load_cur_policy
-            self._average_policy = load_avg_policy
-            self._iteration = load__iterations
-            self._initialize_info_state_nodes(self._root_node)
-
+def CFRPlus_Solving(game, iterations, save_every=0, save_prefix='temp'):
     def save_cfrplus():
         avg_policy = cfr_solver.average_policy()
         avg_policy = dict(zip(avg_policy.state_lookup, avg_policy.action_probability_array))
         policy_handler.save_to_tabular_policy(game, avg_policy, "policies/CFRPlus/{}/{}".format(save_prefix, it))
 
     cfr_solver = cfr.CFRPlusSolver(game)
-    for it in range(load__iterations, load__iterations+iterations+1):  #so that if you tell it to train 20K iterations, the last save isn't 19999
-        if save_every != 0 and it%save_every == 0: #order is important
+    for it in range(iterations + 1):  # so that if you tell it to train 20K iterations, the last save isn't 19999
+        if save_every != 0 and it % save_every == 0:  # order is important
             save_cfrplus()
         cfr_solver.evaluate_and_update_policy()
     save_cfrplus()
 
 
-def XFP_Solving(game, iterations, save_every = 0, save_prefix = 'temp'):
+def XFP_Solving(game, iterations, save_every=0, save_prefix='temp'):
     def save_xfp():
         xfp_policy = xfp_solver.average_policy_tables()
         policy_keys = np.concatenate((list(xfp_policy[0].keys()), list(xfp_policy[1].keys())), 0)
         policy_values = np.concatenate((list(map(lambda d: list(d.values()), list(xfp_policy[0].values()))),
                                         list(map(lambda d: list(d.values()), list(xfp_policy[1].values())))), 0)
-        #change possible None's into 0
+        # change possible None's into 0
         policy_values = [(d if d else 0 for d in a) for a in policy_values]
         xfp_policy = dict(zip(policy_keys, policy_values))
         policy_handler.save_to_tabular_policy(game, xfp_policy, "policies/XFP/{}/{}".format(save_prefix, it))
 
     xfp_solver = fictitious_play.XFPSolver(game)
-    for it in range(iterations+1):
+    for it in range(iterations + 1):
         xfp_solver.iteration()
-        if save_every != 0 and it%save_every == 0: #order is important
+        if save_every != 0 and it % save_every == 0:  # order is important
             save_xfp()
     save_xfp()
 
-#kuhn_policy_gradient.py
-def PG_Solving(game, iterations, save_every = 0, save_prefix = 'temp'):
+
+# kuhn_policy_gradient.py
+def PG_Solving(game, iterations, save_every=0, save_prefix='temp'):
     class PolicyGradientPolicies(policy.Policy):
         """Joint policy to be evaluated."""
+
         def __init__(self, nfsp_policies):
             player_ids = [0, 1]
             super(PolicyGradientPolicies, self).__init__(game, player_ids)
@@ -248,7 +228,7 @@ def PG_Solving(game, iterations, save_every = 0, save_prefix = 'temp'):
                 idx,
                 info_state_size,
                 num_actions,
-                loss_str="rpg",         #["rpg", "qpg", "rm"] = PG loss to use.
+                loss_str="rpg",  # ["rpg", "qpg", "rm"] = PG loss to use.
                 hidden_layers_sizes=(128,)) for idx in range(num_players)
         ]
         expl_policies_avg = PolicyGradientPolicies(agents)
@@ -270,9 +250,10 @@ def PG_Solving(game, iterations, save_every = 0, save_prefix = 'temp'):
         save_pg()
 
 
-def NFSP_Solving(game, iterations, save_every = 0, save_prefix = 'temp'):
+def NFSP_Solving(game, iterations, save_every=0, save_prefix='temp'):
     class NFSPPolicies(policy.Policy):
         """Joint policy to be evaluated."""
+
         def __init__(self, nfsp_policies, mode):
             player_ids = [0, 1]
             super(NFSPPolicies, self).__init__(game, player_ids)
@@ -346,10 +327,9 @@ def NFSP_Solving(game, iterations, save_every = 0, save_prefix = 'temp'):
         save_nfsp()
 
 
-def DEEPCFR_Solving(game, iterations, save_every=0, save_prefix ='temp', num_travers = 40,
-                    lr = 1e-3, policy_layers = (32,32), advantage_layers = (16,16)):
-
-    def save_deepcfr():#and print some info i guess?
+def DEEPCFR_Solving(game, iterations, save_every=0, save_prefix='temp', num_travers=40,
+                    lr=1e-3, policy_layers=(32, 32), advantage_layers=(16, 16)):
+    def save_deepcfr():  # and print some info i guess?
         print("---------iteration " + str(it) + "----------")
         for player, losses in six.iteritems(advantage_losses):
             print("Advantage for player ", player, losses)
@@ -362,10 +342,11 @@ def DEEPCFR_Solving(game, iterations, save_every=0, save_prefix ='temp', num_tra
         tabular_policy = tabular_policy_from_policy(game, callable_policy)
         policy = dict(zip(tabular_policy.state_lookup, tabular_policy.action_probability_array))
         # save under map (save_prefix)_(num_travers)
-        return policy_handler.save_to_tabular_policy(game, policy, "policies/deepCFR/{}/{}".format(save_prefix + "_" + str(num_travers), it))
+        return policy_handler.save_to_tabular_policy(game, policy, "policies/DEEPCFR/{}/{}".format(
+            save_prefix + "_" + str(num_travers), it))
 
     with tf.Session() as sess:
-        #set num iters and call solve() multiple times to allow intermediate saving and eval
+        # set num iters and call solve() multiple times to allow intermediate saving and eval
         deep_cfr_solver = deep_cfr.DeepCFRSolver(sess, game, policy_network_layers=policy_layers,
                                                  advantage_network_layers=advantage_layers, num_iterations=1,
                                                  num_traversals=num_travers, learning_rate=lr)
@@ -377,12 +358,15 @@ def DEEPCFR_Solving(game, iterations, save_every=0, save_prefix ='temp', num_tra
                 save_deepcfr()
         return save_deepcfr()
 
+
 """ ADAPTING POLICIES """
+
+
 # round policy, can decrease exploitability
 def round_tabular_policy_probabilties(policy):
     arr = policy.action_probability_array
     for actions in arr:
-        for j,action in enumerate(actions):
+        for j, action in enumerate(actions):
             if action > 0.999:
                 actions[j] = 1
             if action < 0.001:
