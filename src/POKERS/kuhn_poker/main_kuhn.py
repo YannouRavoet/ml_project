@@ -9,28 +9,21 @@ def train_policies(game, iterations=0):
     # utils_poker.CFRPlus_Solving(game, iterations=iterations, save_every=1000, save_prefix='temp')
     # utils_poker.PG_Solving(game, iterations=iterations, save_every=10000, save_prefix='temp')
     # utils_poker.NFSP_Solving(game, iterations=iterations, save_every=10000, save_prefix='temp')
-    utils_poker.DEEPCFR_Solving(game, iterations=iterations, save_every=1000, save_prefix='temp', num_travers=40)
+    utils_poker.DCFR_Solving(game, iterations=iterations, save_every=1000, save_prefix='temp')
     return
 
 def main(_):
     game = pyspiel.load_game("kuhn_poker")  # kuhn_poker or leduc_poker
 
 
-    # rounding example
-    d480 = policy_handler.load_to_tabular_policy("policies/DCFR/temp/480000")
-    utils_poker.print_algorithm_results(game,d480,"DCFR480k")
-    print(d480.action_probability_array)
-
-    utils_poker.round_tabular_policy_probabilties(d480)
-    utils_poker.print_algorithm_results(game, d480, "DCFR480k after rounding")
-    print(d480.action_probability_array)
-
     # TRAINING
+
     n = int(50000)
     # train_policies(game, n)
 
+
     # TESTING
-    utils_poker.plot_policies(game, {'CFRPlus': 'CFRPlus/temp/', 'DeepCFR': 'DCFR/temp/'}) # , 'XFP': 'XFP/temp/', 'CFR+': 'CFRPlus/temp/', 'PG': 'PG/temp/', 'NFSP': 'NFSP/temp/'
+    utils_poker.plot_policies(game, {'CFRPlus': 'CFRPlus/temp/', 'Discounted CFR': 'DCFR/temp/'}) # , 'XFP': 'XFP/temp/', 'CFR+': 'CFRPlus/temp/', 'PG': 'PG/temp/', 'NFSP': 'NFSP/temp/'
 
     # #load enkele policies, "10k" staat voor aantal iteraties getraind
     # CFR1e6 = policy_handler.load_to_tabular_policy("policies/CFR1M")
