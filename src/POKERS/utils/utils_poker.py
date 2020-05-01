@@ -170,7 +170,7 @@ def DCFR_Solving(game, iterations, save_every=0, save_prefix='temp', a=3 / 2, b=
     def save_dcfr():
         policy = dcfr_solver.average_policy()
         policy = dict(zip(policy.state_lookup, policy.action_probability_array))
-        policy_handler.save_to_tabular_policy(game, policy, "policies/DCFR/{}/{}".format(save_prefix, it))
+        policy_handler.save_to_tabular_policy(game, policy, "policies/CFR_Discounted/{}/{}".format(save_prefix, it))
 
     dcfr_solver = discounted_cfr.DCFRSolver(game, alpha=a, beta=b, gamma=g)
     for it in range(iterations + 1):
