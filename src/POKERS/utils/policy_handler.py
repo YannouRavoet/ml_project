@@ -14,7 +14,6 @@ def save_to_tabular_policy(game, policy, path):
     tabular_policy.action_probability_array = list(list(val) for val in policy.values())        #save the action probs to the default policy
     save_tabular_policy(game, tabular_policy, path)
 
-
 def save_tabular_policy(game, tabular_policy, path):
     # ACTUAL SAVING OF INFORMATION IN THE POLICY
     dict = {'game': game.get_type().short_name, 'action_probability_array': tabular_policy.action_probability_array}

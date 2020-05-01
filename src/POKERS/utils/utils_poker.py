@@ -1,6 +1,7 @@
 import os
 import sys
 import six
+import pickle
 import numpy as np
 import policy_handler
 import tensorflow as tf
@@ -37,65 +38,107 @@ def command_line_action(time_step):
 """ PLOTTING """
 
 
-def plot_policies(game, algorithms):
+def plot_policies(game, algorithms, extract_metrics=True, max_iter = None):
     """
     :param game: pyspiel Game class
-    :param algorithms: {string: string} maps the algorithm name to the prefix within the policies directory of the game directory (i.e. {'CFR': 'CFR/temp/'})
+    :param algorithms: {string: string} maps the algorithm name to the prefix within the policies directory of the game directory (i.e. {'CFR': 'temp/'})
+    :param extract_metrics: bool - True if you still have to extract the metrics from the saved policies
+    :param max_iter: int - max iteration to plot
     :return: void
     """
     exploitabilities = {}
     nash_convs = {}
     for algo in algorithms:
+        print(str(algo).upper())
         algo_prefix = algorithms[algo]
+        algo_path = os.path.join(algo, algo_prefix)
+        if extract_metrics:
+            files = get_algo_files(algo_path, max_iter)
+            algo_policies = get_algo_policies(algo_path, files, game)
+            algo_exploitabilities, algo_nashconvs = get_algo_metrics(algo_policies, game)
+            save_metrics(algo_exploitabilities, algo_nashconvs, algo_path)
+        else:
+            algo_exploitabilities, algo_nashconvs = load_metrics(algo_path)
 
-        # get all the files
-        print("Getting the files for {} from {}...".format(algo, algo_prefix))
-        files = np.array([])
-        for (root, subFolder, filenames) in os.walk('policies'):
-            for file in filenames:
-                path = os.path.join(root, file)
-                if algo_prefix in path:
-                    files = np.append(files, path)
-        # get the policy from each file
-        print("Extracting the policies from the files...")
-        algo_policies = {}
-        for file in files:
-            algo_iterations = (int(file.split(algo_prefix)[1]))
-            algo_policy = policy_handler.load_to_tabular_policy(file)
-            algo_policies[algo_iterations] = policy.PolicyFromCallable(game, algo_policy)
-
-        # get all the desired metrics of each policy: this step can take a while
-        print("Extracting metrics for {}...".format(algo))
-        algo_exploitabilities = {}
-        algo_nashconvs = {}
-        for key in algo_policies:
-            algo_exploitabilities[key] = exploitability(game,algo_policies[key])
-            algo_nashconvs[key] = nash_conv(game, algo_policies[key])
         exploitabilities[algo] = algo_exploitabilities
         nash_convs[algo] = algo_nashconvs
 
     # PLOTTING
     print("Plotting metrics for all passed algorithms...")
-
-    def plot_series(title, metric, series):
-        legend = []
-        for algo in series:
-            algo_series = series[algo]
-            algo_series = sorted(algo_series.items())
-            algo_iterations, algo_series = zip(*algo_series)
-            plt.plot(algo_iterations, algo_series)
-            legend.append(algo)
-
-        plt.title('{} - {}'.format(str(game), title))
-        plt.legend(legend)
-        plt.xlabel('number of training iterations')
-        plt.ylabel(metric)
-        plt.yscale('log')
-        plt.show()
-
-    plot_series('Exploitability ifo training iterations', 'Exploitability', exploitabilities)
-    plot_series('NashConv ifo training iterations', 'NashConv', nash_convs)
+    plot_series('Exploitability ifo training iterations', 'Exploitability', exploitabilities, max_iter)
+    plot_series('NashConv ifo training iterations', 'NashConv', nash_convs, max_iter)
     return
+
+
+def get_algo_files(algo_path, max_iter):
+    print("Getting the files...")
+    files = np.array([])
+    for (root, subFolder, filenames) in os.walk('policies'):
+        for file in filenames:
+            path = os.path.join(root, file)
+            if algo_path in path and (max_iter is None or int(file) <= max_iter):
+                files = np.append(files, path)
+    return files
+
+
+def get_algo_policies(algo_path, files, game):
+    print("Extracting the policies...")
+    algo_policies = {}
+    for file in files:
+        algo_iterations = (int(file.split(algo_path)[1]))
+        algo_policy = policy_handler.load_to_tabular_policy(file)
+        algo_policies[algo_iterations] = policy.PolicyFromCallable(game, algo_policy)
+    return algo_policies
+
+
+def get_algo_metrics(algo_policies, game):
+    print("Extracting metrics...")
+    algo_exploitabilities = {}
+    algo_nashconvs = {}
+    for key in algo_policies:
+        algo_exploitabilities[key] = exploitability(game, algo_policies[key])
+        algo_nashconvs[key] = nash_conv(game, algo_policies[key])
+    return algo_exploitabilities, algo_nashconvs
+
+
+def save_metrics(algo_exploitabilities, algo_nashconvs, algo_path):
+    print("Saving metrics...")
+    algo_expl_path = os.path.join('metrics', algo_path, 'exploitabilities')
+    algo_nashconv_path = os.path.join('metrics', algo_path, 'nashconv')
+    with open(algo_expl_path, 'wb') as file:
+        pickle.dump(algo_exploitabilities, file)
+    with open(algo_nashconv_path, 'wb') as file:
+        pickle.dump(algo_nashconvs, file)
+
+
+def load_metrics(algo_path):
+    print("Loading metrics...")
+    algo_expl_path = os.path.join('metrics', algo_path, 'exploitabilities')
+    algo_nashconv_path = os.path.join('metrics', algo_path, 'nashconv')
+    with open(algo_expl_path, 'rb') as file:
+        algo_exploitabilities = pickle.load(file)
+    with open(algo_nashconv_path, 'rb') as file:
+        algo_nashconvs = pickle.load(file)
+    return algo_exploitabilities, algo_nashconvs
+
+
+def plot_series(title, metric, series, max_iter):
+    legend = []
+    for algo in series:
+        algo_series = series[algo]
+        algo_series = sorted(algo_series.items())
+        if not max_iter is None:
+            algo_series = list(filter(lambda x: x[0]<=max_iter, algo_series))
+        algo_iterations, algo_series = zip(*algo_series)
+        plt.plot(algo_iterations, algo_series)
+        legend.append(algo)
+
+    plt.title(title)
+    plt.legend(legend)
+    plt.xlabel('number of training iterations')
+    plt.ylabel(metric)
+    plt.yscale('log')
+    plt.show()
 
 
 def print_algorithm_results(game, policy, algorithm_name):
@@ -116,7 +159,7 @@ def CFR_Solving(game, iterations, save_every=0, save_prefix='temp'):
         policy_handler.save_to_tabular_policy(game, policy, "policies/CFR/{}/{}".format(save_prefix, it))
 
     cfr_solver = cfr.CFRSolver(game)
-    for it in range(iterations + 1):  # so that if you tell it to train 20K iterations, the last save isn't 19999
+    for it in range(iterations + 1):
         if save_every != 0 and it % save_every == 0:  # order is important
             save_cfr()
         cfr_solver.evaluate_and_update_policy()
@@ -130,7 +173,7 @@ def DCFR_Solving(game, iterations, save_every=0, save_prefix='temp', a=3 / 2, b=
         policy_handler.save_to_tabular_policy(game, policy, "policies/DCFR/{}/{}".format(save_prefix, it))
 
     dcfr_solver = discounted_cfr.DCFRSolver(game, alpha=a, beta=b, gamma=g)
-    for it in range(iterations + 1):  # so that if you tell it to train 20K iterations, the last save isn't 19999
+    for it in range(iterations + 1):
         if save_every != 0 and it % save_every == 0:  # order is important
             save_dcfr()
         dcfr_solver.evaluate_and_update_policy()
@@ -144,7 +187,7 @@ def CFR_BR_Solving(game, iterations, save_every=0, save_prefix='temp'):
         policy_handler.save_to_tabular_policy(game, policy, "policies/CFRBR/{}/{}".format(save_prefix, it))
 
     cfr_solver = cfr_br.CFRBRSolver(game)
-    for it in range(iterations + 1):  # so that if you tell it to train 20K iterations, the last save isn't 19999
+    for it in range(iterations + 1):
         if save_every != 0 and it % save_every == 0:  # order is important
             save_cfr_br()
         cfr_solver.evaluate_and_update_policy()
@@ -158,7 +201,7 @@ def CFRPlus_Solving(game, iterations, save_every=0, save_prefix='temp'):
         policy_handler.save_to_tabular_policy(game, avg_policy, "policies/CFRPlus/{}/{}".format(save_prefix, it))
 
     cfr_solver = cfr.CFRPlusSolver(game)
-    for it in range(iterations + 1):  # so that if you tell it to train 20K iterations, the last save isn't 19999
+    for it in range(iterations + 1):
         if save_every != 0 and it % save_every == 0:  # order is important
             save_cfrplus()
         cfr_solver.evaluate_and_update_policy()
@@ -361,11 +404,12 @@ def DEEPCFR_Solving(game, iterations, save_every=0, save_prefix='temp', num_trav
 
 """ ADAPTING POLICIES """
 
-#round policy, can decrease exploitability
-def round_tabular_policy_probabilties(policy, vals = [1,0,1/3, 2/3], th = 0.001):
+
+# round policy, can decrease exploitability
+def round_tabular_policy_probabilties(policy, vals=[1, 0, 1 / 3, 2 / 3], th=0.001):
     arr = policy.action_probability_array
     for actions in arr:
-        for j,action in enumerate(actions):
+        for j, action in enumerate(actions):
             for val in vals:
                 if abs(action - val) < th:
                     actions[j] = val
