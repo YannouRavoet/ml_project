@@ -194,14 +194,16 @@ def CFR_BR_Solving(game, iterations, save_every=0, save_prefix='temp'):
     save_cfr_br()
 
 
-def CFRPlus_Solving(game, iterations, save_every=0, save_prefix='temp'):
+def CFRPlus_Solving(game, iterations, save_every=0, save_prefix='temp', alternating_updates = True, linear_averaging = True):
     def save_cfrplus():
         avg_policy = cfr_solver.average_policy()
         avg_policy = dict(zip(avg_policy.state_lookup, avg_policy.action_probability_array))
         policy_handler.save_to_tabular_policy(game, avg_policy, "policies/CFRPlus/{}/{}".format(save_prefix, it))
 
     cfr_solver = cfr.CFRPlusSolver(game)
-    for it in range(iterations + 1):
+    #cfr_solver = cfr._CFRSolver(game, regret_matching_plus=True, alternating_updates=alternating_updates, linear_averaging=linear_averaging)
+    for it in range(iterations + 1):  # so that if you tell it to train 20K iterations, the last save isn't 19999
+
         if save_every != 0 and it % save_every == 0:  # order is important
             save_cfrplus()
         cfr_solver.evaluate_and_update_policy()

@@ -11,7 +11,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/POKERS/utils" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/open_spiel/venv" />
     </content>
-    <orderEntry type="jdk" jdkName="Remote Python 3.6.10 Docker (ml_project:latest)" jdkType="Python SDK" />
+    <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
