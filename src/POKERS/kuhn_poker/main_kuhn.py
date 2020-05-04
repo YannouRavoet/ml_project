@@ -4,12 +4,12 @@ import utils_poker
 import policy_handler
 
 def train_policies(game, iterations=0):
-    # utils_poker.CFR_Solving(game, iterations=iterations, save_every=1000, save_prefix='temp')
-    # utils_poker.XFP_Solving(game, iterations=iterations, save_every=1000, save_prefix='temp')
-    # utils_poker.CFRPlus_Solving(game, iterations=iterations, save_every=1000, save_prefix='temp')
-    # utils_poker.PG_Solving(game, iterations=iterations, save_every=10000, save_prefix='temp')
-    # utils_poker.NFSP_Solving(game, iterations=iterations, save_every=10000, save_prefix='temp')
-    #utils_poker.DCFR_Solving(game, iterations=iterations, save_every=1000, save_prefix='g=1', g=1)
+    utils_poker.CFR_Solving(game, iterations=iterations, save_every=1000, save_prefix='base')
+    # utils_poker.XFP_Solving(game, iterations=iterations, save_every=1000, save_prefix='base')
+    # utils_poker.CFRPlus_Solving(game, iterations=iterations, save_every=1000, save_prefix='base')
+    # utils_poker.PG_Solving(game, iterations=iterations, save_every=10000, save_prefix='base')
+    # utils_poker.NFSP_Solving(game, iterations=iterations, save_every=10000, save_prefix='base')
+    # utils_poker.DCFR_Solving(game, iterations=iterations, save_every=1000, save_prefix='g=1', g=1)
 
 
     return
@@ -22,8 +22,8 @@ def main(_):
     train_policies(game, n)
 
     # TESTING
-    utils_poker.plot_policies(game, {'CFR_Discounted': 'temp/'}, extract_metrics=True, max_iter=int(1e6)) #, 'CFR': 'temp/', 'XFP': 'temp/', 'PG': 'temp/', 'CFRPlus': 'temp/', 'NFSP': 'temp/'
-
+    utils_poker.plot_policies(game, {'CFR': 'CFR/base/'}, extract_metrics=True, max_iter=int(1e6))
+    utils_poker.plot_policies(game, {'CFR': 'CFR/base/', 'CFR (Regret Matching+)': 'CFR/RM+/', 'CFR (Linear Averaging)': 'CFR/LA/', 'CFR (Alternating Updates)': 'CFR/AU/', 'CFR+': 'CFRPlus/base/'}, extract_metrics=False, max_iter=int(1e6))
 
 if __name__ == "__main__":
     app.run(main)

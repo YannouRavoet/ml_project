@@ -41,7 +41,7 @@ def command_line_action(time_step):
 def plot_policies(game, algorithms, extract_metrics=True, max_iter = None):
     """
     :param game: pyspiel Game class
-    :param algorithms: {string: string} maps the algorithm name to the prefix within the policies directory of the game directory (i.e. {'CFR': 'temp/'})
+    :param algorithms: {string: string} maps the algorithm name to the prefix within the policies directory of the game directory (i.e. {'CFR': 'base/'})
     :param extract_metrics: bool - True if you still have to extract the metrics from the saved policies
     :param max_iter: int - max iteration to plot
     :return: void
@@ -50,8 +50,7 @@ def plot_policies(game, algorithms, extract_metrics=True, max_iter = None):
     nash_convs = {}
     for algo in algorithms:
         print(str(algo).upper())
-        algo_prefix = algorithms[algo]
-        algo_path = os.path.join(algo, algo_prefix)
+        algo_path = algorithms[algo]
         if extract_metrics:
             files = get_algo_files(algo_path, max_iter)
             algo_policies = get_algo_policies(algo_path, files, game)
@@ -152,7 +151,7 @@ def print_algorithm_results(game, policy, algorithm_name):
 """ TRAINING ALGORITHMS """
 
 
-def CFR_Solving(game, iterations, save_every=0, save_prefix='temp'):
+def CFR_Solving(game, iterations, save_every=0, save_prefix='base'):
     def save_cfr():
         policy = cfr_solver.average_policy()
         policy = dict(zip(policy.state_lookup, policy.action_probability_array))
@@ -166,7 +165,7 @@ def CFR_Solving(game, iterations, save_every=0, save_prefix='temp'):
     save_cfr()
 
 
-def DCFR_Solving(game, iterations, save_every=0, save_prefix='temp', a=3 / 2, b=0, g=2):
+def DCFR_Solving(game, iterations, save_every=0, save_prefix='base', a=3 / 2, b=0, g=2):
     def save_dcfr():
         policy = dcfr_solver.average_policy()
         policy = dict(zip(policy.state_lookup, policy.action_probability_array))
@@ -180,7 +179,7 @@ def DCFR_Solving(game, iterations, save_every=0, save_prefix='temp', a=3 / 2, b=
     save_dcfr()
 
 
-def CFR_BR_Solving(game, iterations, save_every=0, save_prefix='temp'):
+def CFR_BR_Solving(game, iterations, save_every=0, save_prefix='base'):
     def save_cfr_br():
         policy = cfr_solver.average_policy()
         policy = dict(zip(policy.state_lookup, policy.action_probability_array))
@@ -194,7 +193,7 @@ def CFR_BR_Solving(game, iterations, save_every=0, save_prefix='temp'):
     save_cfr_br()
 
 
-def CFRPlus_Solving(game, iterations, save_every=0, save_prefix='temp', alternating_updates = True, linear_averaging = True):
+def CFRPlus_Solving(game, iterations, save_every=0, save_prefix='base', alternating_updates = True, linear_averaging = True):
     def save_cfrplus():
         avg_policy = cfr_solver.average_policy()
         avg_policy = dict(zip(avg_policy.state_lookup, avg_policy.action_probability_array))
@@ -210,7 +209,7 @@ def CFRPlus_Solving(game, iterations, save_every=0, save_prefix='temp', alternat
     save_cfrplus()
 
 
-def XFP_Solving(game, iterations, save_every=0, save_prefix='temp'):
+def XFP_Solving(game, iterations, save_every=0, save_prefix='base'):
     def save_xfp():
         xfp_policy = xfp_solver.average_policy_tables()
         policy_keys = np.concatenate((list(xfp_policy[0].keys()), list(xfp_policy[1].keys())), 0)
@@ -230,7 +229,7 @@ def XFP_Solving(game, iterations, save_every=0, save_prefix='temp'):
 
 
 # kuhn_policy_gradient.py
-def PG_Solving(game, iterations, save_every=0, save_prefix='temp'):
+def PG_Solving(game, iterations, save_every=0, save_prefix='base'):
     class PolicyGradientPolicies(policy.Policy):
         """Joint policy to be evaluated."""
 
@@ -295,7 +294,7 @@ def PG_Solving(game, iterations, save_every=0, save_prefix='temp'):
         save_pg()
 
 
-def NFSP_Solving(game, iterations, save_every=0, save_prefix='temp'):
+def NFSP_Solving(game, iterations, save_every=0, save_prefix='base'):
     class NFSPPolicies(policy.Policy):
         """Joint policy to be evaluated."""
 
@@ -372,7 +371,7 @@ def NFSP_Solving(game, iterations, save_every=0, save_prefix='temp'):
         save_nfsp()
 
 
-def DEEPCFR_Solving(game, iterations, save_every=0, save_prefix='temp', num_travers=40,
+def DEEPCFR_Solving(game, iterations, save_every=0, save_prefix='base', num_travers=40,
                     lr=1e-3, policy_layers=(32, 32), advantage_layers=(16, 16)):
     def save_deepcfr():  # and print some info i guess?
         print("---------iteration " + str(it) + "----------")
