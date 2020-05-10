@@ -410,10 +410,22 @@ def DEEPCFR_Solving(game, iterations, save_every=0, save_prefix='base', num_trav
 def round_tabular_policy_probabilties(policy, vals=[1, 0, 1 / 3, 2 / 3], th=0.001):
     arr = policy.action_probability_array
     for actions in arr:
+        # array indicating which actions were rounded to detect if some but not all were rounded
+        rounded = np.zeros(len(actions), dtype=bool)
         for j, action in enumerate(actions):
             for val in vals:
                 if abs(action - val) < th:
                     actions[j] = val
+                    rounded[j] = True
+
+            #if some but not all were rounded, we need to rescale the not-rounded ones to ensure sum = 1
+            if rounded.any() and not rounded.all():
+                #get indices of the actions that were not rounded
+                unrounded = np.where(rounded==False)[0]
+                #calculate residual to spread over unrounded vals
+                delta = (1 - sum(actions))/len(unrounded)
+                for index in unrounded:
+                    actions[index] += delta
 
     policy.action_probability_array = arr
     return policy
