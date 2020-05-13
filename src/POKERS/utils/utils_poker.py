@@ -34,9 +34,53 @@ def command_line_action(time_step):
             continue
     return action
 
+def eval_against_policy(game, policies, num_episodes, num_iterations):
+    """
+    :param game: OpenSpiel Game class: tested for kuhn_poker and leduc_poker
+    :param policies: a dict of 2 policies to test against each other
+    :param num_episodes: the number of episodes to play
+    :param num_iterations: the number of iterations per episode
+    :return: a printout of the number of wins and the utility won by each policy
+    """
+    for episode in range(num_episodes):
+        RETURNS = {algo: 0 for algo in list(policies.keys())}
+        WINS = {algo: 0 for algo in list(policies.keys())}
+        POL_KEYS = list(policies.keys()) # the order of the players is maintained in this list
+        for i in range (num_iterations):
+            state = game.new_initial_state()
+            CARDS = []
+            DECISIONS = []
+            if i == num_iterations/2 -1:
+                POL_KEYS[0], POL_KEYS[1] = POL_KEYS[1], POL_KEYS[0]
+            while not state.is_terminal():
+                # DEAL CARDS
+                if state.is_chance_node():
+                    outcomes = state.chance_outcomes()
+                    card_list, prob_list = zip(*outcomes)
+                    card = np.random.choice(card_list, p=prob_list)
+                    CARDS.append(state.action_to_string(card))
+                    state.apply_action(card)
+                # CURRENT PLAYER PLAYS
+                else:
+                    used_policy = POL_KEYS[state.current_player()]
+                    decision = np.random.choice(state.legal_actions(state.current_player()), p=list(policies[used_policy].action_probabilities(state).values()))
+                    DECISIONS.append(state.action_to_string(decision))
+                    state.apply_action(decision)
 
-""" PLOTTING """
+            # EPISODE RESULTS
+            RETURNS[POL_KEYS[0]] += state.returns()[0]
+            RETURNS[POL_KEYS[1]] += state.returns()[1]
+            WINS[POL_KEYS[0]] = WINS[POL_KEYS[0]]+1 if state.returns()[0] > state.returns()[1] else WINS[POL_KEYS[0]]
+            WINS[POL_KEYS[1]] = WINS[POL_KEYS[1]]+1 if state.returns()[1] > state.returns()[0] else WINS[POL_KEYS[1]]
 
+        print("{}\tPolicy wins: {}".format(episode, str(WINS)))
+        print("\tPolicy returns: {}".format(str(RETURNS)))
+    return RETURNS
+
+
+""""""""""""""""""
+"""  PLOTTING  """
+""""""""""""""""""
 
 def plot_policies(game, algorithms, extract_metrics=True, max_iter = None):
     """
@@ -149,8 +193,9 @@ def print_algorithm_results(game, callable_policy, algorithm_name):
     print("nashconv = {}".format(policy_nashconv))
 
 
-""" TRAINING ALGORITHMS """
-
+""""""""""""""""""""""""""""""
+"""   TRAINING ALGORITHMS  """
+""""""""""""""""""""""""""""""
 
 def CFR_Solving(game, iterations, save_every=0, save_prefix='base'):
     def save_cfr():
@@ -403,9 +448,9 @@ def DEEPCFR_Solving(game, iterations, save_every=0, save_prefix='base', num_trav
                 save_deepcfr()
         return save_deepcfr()
 
-
-""" ADAPTING POLICIES """
-
+""""""""""""""""""""""""""
+"""  ADAPTING POLICIES """
+""""""""""""""""""""""""""
 
 # round policy, can decrease exploitability
 def round_tabular_policy_probabilties(policy, vals=[1, 0, 1 / 3, 2 / 3], th=0.001):

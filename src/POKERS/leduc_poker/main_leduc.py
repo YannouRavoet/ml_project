@@ -21,14 +21,21 @@ def main(_):
     #train_policies(game, n)
 
     # TESTING
+    # PLOTTING
     # utils_poker.plot_policies(game, {'CFR': 'CFR/base/', 'CFRPlus': 'CFRPlus/base/', 'DCFR': 'CFR_Discounted/base/'}, extract_metrics=False)
     #'DCFR 111': 'CFR_Discounted/temp_111/'
 
-    # LOADING POLICIES
+    # ROUNDING
     cfr_policy = policy_handler.load_to_tabular_policy('policies/CFRPlus/base/750000')
-    utils_poker.print_algorithm_results(game, cfr_policy, 'CFRPlus no rounding')
-    cfr_rounded_policy = utils_poker.round_tabular_policy_probabilties(cfr_policy)
-    utils_poker.print_algorithm_results(game, cfr_rounded_policy, 'CFRPlus with rounding')
+    # utils_poker.print_algorithm_results(game, cfr_policy, 'CFRPlus no rounding')
+    # cfr_rounded_policy = utils_poker.round_tabular_policy_probabilties(cfr_policy)
+    # utils_poker.print_algorithm_results(game, cfr_rounded_policy, 'CFRPlus with rounding')
+
+    # AGAINST RANDOM BOTS
+    random_policy = policy_handler.load_to_tabular_policy('policies/CFRPlus/base/0')
+    utils_poker.eval_against_policy(game, {'CFR+': cfr_policy, 'Random': random_policy}, num_episodes=10, num_iterations=int(1e4))
+
+    # CSV-FILE
     # tournament.policy_to_csv(game, cfr_policy, 'leduc_cfrplus_750k.csv')
 
 
