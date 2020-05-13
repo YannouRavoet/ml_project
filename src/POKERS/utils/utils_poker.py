@@ -7,7 +7,7 @@ import policy_handler
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
-from open_spiel.python.policy import PolicyFromCallable, tabular_policy_from_policy
+from open_spiel.python.policy import tabular_policy_from_callable
 from open_spiel.python.algorithms.exploitability import exploitability, nash_conv
 from open_spiel.python import policy
 from open_spiel.python.algorithms import cfr, fictitious_play, policy_gradient, nfsp, discounted_cfr, deep_cfr, cfr_br
@@ -86,7 +86,7 @@ def get_algo_policies(algo_path, files, game):
     for file in files:
         algo_iterations = (int(file.split(algo_path)[1]))
         algo_policy = policy_handler.load_to_tabular_policy(file)
-        algo_policies[algo_iterations] = policy.PolicyFromCallable(game, algo_policy)
+        algo_policies[algo_iterations] = policy.tabular_policy_from_callable(game, algo_policy)
     return algo_policies
 
 
@@ -140,12 +140,13 @@ def plot_series(title, metric, series, max_iter):
     plt.show()
 
 
-def print_algorithm_results(game, policy, algorithm_name):
+def print_algorithm_results(game, callable_policy, algorithm_name):
     print(algorithm_name.upper())
-    callable_policy = PolicyFromCallable(game, policy)
-    policy_exploitability = exploitability(game, callable_policy)
-    # print(callable_policy._callable_policy.action_probability_array)
+    tabular_policy = tabular_policy_from_callable(game, callable_policy)
+    policy_exploitability = exploitability(game, tabular_policy)
+    policy_nashconv = nash_conv(game, tabular_policy)
     print("exploitability = {}".format(policy_exploitability))
+    print("nashconv = {}".format(policy_nashconv))
 
 
 """ TRAINING ALGORITHMS """
@@ -256,7 +257,7 @@ def PG_Solving(game, iterations, save_every=0, save_prefix='base'):
             return prob_dict
 
     def save_pg():
-        tabular_policy = policy.tabular_policy_from_policy(game, expl_policies_avg)
+        tabular_policy = policy.tabular_policy_from_callable(game, expl_policies_avg)
         policy_handler.save_tabular_policy(game, tabular_policy, "policies/PG/{}/{}".format(save_prefix, it))
 
     num_players = 2
@@ -323,7 +324,7 @@ def NFSP_Solving(game, iterations, save_every=0, save_prefix='base'):
             return prob_dict
 
     def save_nfsp():
-        tabular_policy = policy.tabular_policy_from_policy(game, expl_policies_avg)
+        tabular_policy = policy.tabular_policy_from_callable(game, expl_policies_avg)
         policy_handler.save_tabular_policy(game, tabular_policy, "policies/NFSP/{}/{}".format(save_prefix, it))
 
     num_players = 2
@@ -382,8 +383,8 @@ def DEEPCFR_Solving(game, iterations, save_every=0, save_prefix='base', num_trav
         print("Strategy Buffer Size: ",
               len(deep_cfr_solver.strategy_buffer))
         print("policy loss: ", policy_loss)
-        callable_policy = PolicyFromCallable(game, deep_cfr_solver.action_probabilities)
-        tabular_policy = tabular_policy_from_policy(game, callable_policy)
+        callable_policy = tabular_policy_from_callable(game, deep_cfr_solver.action_probabilities)
+        tabular_policy = tabular_policy_from_callable(game, callable_policy)
         policy = dict(zip(tabular_policy.state_lookup, tabular_policy.action_probability_array))
         # save under map (save_prefix)_(num_travers)
         return policy_handler.save_to_tabular_policy(game, policy, "policies/DEEPCFR/{}/{}".format(
