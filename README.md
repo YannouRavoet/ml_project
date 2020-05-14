@@ -6,6 +6,9 @@ A project focused on the application of Game Theory, Reinforcement Learning and 
        git clone https://github.com/deepmind/open_spiel
        git clone https://github.com/probberechts/ML_project20
 
+### Structure
+The ML_Project20 directory contains the code for creating csv files. The open_spiel directory contains the open_spiel library. The resources directory contains all the plots as well as the two final reports (and some other stuff like plannings, etc...). The src directory is where the magic happens.
+
 ### Docker
 The dockerfile starts from a python:3.6-slim-buster build and adds the OpenSpiel library (and dependencies).
 
