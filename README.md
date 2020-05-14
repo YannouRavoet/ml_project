@@ -18,6 +18,8 @@ Also test whether you can use the pyspiel library and modules inside your code.
 
     # testing a built example
     open_spiel/build/examples/example --game=tic_tac_toe
+    
+    # open python shell
     # import pyspiel and modules inside a python shell
     import pyspiel
     from open_spiel.python import rl_environment
