@@ -1,9 +1,10 @@
 # Machine Learning: Project
-A project focused on the application of Game Theory, Reinforcement Learning and Deep Learning in a Multi-Agent setting using the Google DeepMind OpenSpiel library. This project was made in the context of the 'Machine Learning: Project' (H0T25A) course at the KU Leuven.
+A project focused on the application of Game Theory, Reinforcement Learning and Deep Learning in a Multi-Agent setting using the Google DeepMind OpenSpiel library. This project was made in the context of the 'Machine Learning: Project' (H0T25A) course at the KU Leuven. The open_spiel and ML_project20 directories are links to separate github repositories and should be cloned separately. The total download of the project then looks as follows:
 
        git clone https://github.com/YannouRavoet/ml_project
        cd ml_project
        git clone https://github.com/deepmind/open_spiel
+       git clone https://github.com/probberechts/ML_project20
 
 ### Docker
 The dockerfile starts from a python:3.6-slim-buster build and adds the OpenSpiel library (and dependencies).
@@ -17,7 +18,8 @@ Also test whether you can use the pyspiel library and modules inside your code.
     # import pyspiel and modules inside a python shell
     import pyspiel
     from open_spiel.python import rl_environment
-    
+
+### Pycharm - Docker + SciView
 To be able to see plots in the SciView tab of PyCharm whilst using a docker container you need to:
 
     1. Go into the run configuration of the file that builds the plots
