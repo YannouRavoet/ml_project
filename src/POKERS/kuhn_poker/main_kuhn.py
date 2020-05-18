@@ -22,7 +22,7 @@ def main(_):
 
     # TESTING
     # PLOTTING
-    utils_poker.plot_policies(game, {'CFR': 'CFR/base/', 'CFR+': 'CFRPlus/base/', 'DCFR': 'CFR_Discounted/base/'}, extract_metrics=False, max_iter=int(1e6))
+    utils_poker.plot_policies(game, {'CFR': 'CFR/base/', 'XFP': 'XFP/base/', 'PG': 'PG/base/'}, extract_metrics=False, max_iter=int(1e6))
     # ROUNDING
     # cfr_policy = policy_handler.load_to_tabular_policy('policies/CFRPlus/base/1000000')
     # utils_poker.print_algorithm_results(game, cfr_policy, 'CFRPlus no rounding')
