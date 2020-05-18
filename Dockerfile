@@ -2,7 +2,7 @@
 #Why use this Dockerfile?
 # - runs on python3 => PyCharm can detect Interpreter Structure
 # - smaller size
-#reference source: https://github.com/theduelinghouse/open_spiel-docker
+#source: https://github.com/theduelinghouse/open_spiel-docker
 FROM python:3.6-slim-buster
 
 #install sudo and git
